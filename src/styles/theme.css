@@ -1,0 +1,252 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* MetaCraft Digital Archaeology Color System */
+  --color-abyssal-black: #080A0F;
+  --color-stratum-dark: #0E1219;
+  --color-deep-stratum: #141C2A;
+  --color-archaeological-gold: #C9A84C;
+  --color-amber-fossil: #E8732A;
+  --color-sonar-green: #2AFC98;
+  --color-parchment-white: #EDE8DC;
+  --color-dust-gray: #7A7060;
+  --color-fragment-red: #C0392B;
+  
+  /* Additional shades */
+  --color-stratum-lighter: #1E2535;
+  --color-purple-accent: #A052C8;
+
+  /* Typography */
+  --font-cinzel: 'Cinzel', serif;
+  --font-ibm-plex-mono: 'IBM Plex Mono', monospace;
+  --font-bebas-neue: 'Bebas Neue', cursive;
+  --font-jetbrains-mono: 'JetBrains Mono', monospace;
+
+  --font-size: 16px;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+}
+
+@theme inline {
+  --color-background: var(--color-abyssal-black);
+  --color-foreground: var(--color-parchment-white);
+  --color-card: var(--color-stratum-dark);
+  --color-card-foreground: var(--color-parchment-white);
+  --color-primary: var(--color-archaeological-gold);
+  --color-primary-foreground: var(--color-abyssal-black);
+  --color-secondary: var(--color-amber-fossil);
+  --color-secondary-foreground: var(--color-parchment-white);
+  --color-muted: var(--color-dust-gray);
+  --color-muted-foreground: var(--color-dust-gray);
+  --color-destructive: var(--color-fragment-red);
+  --color-destructive-foreground: var(--color-parchment-white);
+  --color-border: rgba(201, 168, 76, 0.25);
+  --color-input: var(--color-deep-stratum);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  body {
+    background-color: var(--color-abyssal-black);
+    color: var(--color-parchment-white);
+    font-family: var(--font-ibm-plex-mono);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  h1, h2 {
+    font-family: var(--font-cinzel);
+    color: var(--color-parchment-white);
+    line-height: 1.2;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-medium);
+  }
+
+  h2 {
+    font-size: 2rem;
+    font-weight: var(--font-weight-medium);
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-medium);
+  }
+
+  h4 {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-medium);
+  }
+
+  label {
+    font-family: var(--font-bebas-neue);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+
+  button {
+    font-family: var(--font-bebas-neue);
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+
+  input {
+    font-family: var(--font-jetbrains-mono);
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+/* Global texture layers and animations */
+@keyframes sonarSweep {
+  0% {
+    top: -2px;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+@keyframes goldTwinkle {
+  0%, 100% {
+    opacity: 0.02;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes filmGrain {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-5%, -5%);
+  }
+  20% {
+    transform: translate(-10%, 5%);
+  }
+  30% {
+    transform: translate(5%, -10%);
+  }
+  40% {
+    transform: translate(-5%, 15%);
+  }
+  50% {
+    transform: translate(-10%, 5%);
+  }
+  60% {
+    transform: translate(15%, 0%);
+  }
+  70% {
+    transform: translate(0%, 10%);
+  }
+  80% {
+    transform: translate(-15%, 0%);
+  }
+  90% {
+    transform: translate(10%, 5%);
+  }
+}
+
+@keyframes sonarPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes excavationReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sealBreak {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    transform: scale(0) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes artifactDrop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes gridIlluminate {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
