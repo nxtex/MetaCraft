@@ -6,22 +6,23 @@ import {
   ChevronRight, X, AlertCircle, Loader2, CheckCircle, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { uploadFile, deleteStorageFile, getFileURL } from '../../lib/storage';
 import { metadataApi } from '../../lib/api';
 import { saveFileRecord, deleteFileRecord } from '../../lib/firestore';
 import { toast } from 'sonner';
 
-type Stage = 'idle' | 'uploading' | 'extracting' | 'ready';
+type Stage = 'idle' | 'uploading' | 'ready';
 
 interface FileState {
   file: File;
-  storagePath: string;
-  downloadURL: string;
   firestoreId: string;
   metadata: Record<string, unknown>;
+  editedBlob: Blob | null;
 }
 
-const EDITABLE = new Set(['title','author','subject','creator','artist','album','genre','date','copyright','comment','description','imagedescription']);
+const EDITABLE = new Set([
+  'title','author','subject','creator','artist','album','genre',
+  'date','copyright','comment','description','imagedescription'
+]);
 
 function MetaRow({ label, value, onEdit }: {
   label: string;
@@ -31,7 +32,9 @@ function MetaRow({ label, value, onEdit }: {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft]     = useState(String(value ?? ''));
   const editable = EDITABLE.has(label.toLowerCase().split('.').pop() ?? '');
-  const display  = typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value ?? '—');
+  const display  = typeof value === 'object' && value !== null
+    ? JSON.stringify(value)
+    : String(value ?? '—');
 
   return (
     <motion.div className="flex items-start gap-3 py-3 px-4 group"
@@ -46,14 +49,16 @@ function MetaRow({ label, value, onEdit }: {
               className="flex-1 px-2 py-1 text-sm outline-none"
               style={{ backgroundColor: '#141C2A', border: '1px solid #C9A84C', fontFamily: 'IBM Plex Mono, monospace', color: '#EDE8DC' }} />
             <button onClick={() => { onEdit(label, draft); setEditing(false); }}
-              className="px-3 py-1 text-xs" style={{ backgroundColor: '#C9A84C', color: '#080A0F', fontFamily: 'Bebas Neue, cursive' }}>OK</button>
+              className="px-3 py-1 text-xs"
+              style={{ backgroundColor: '#C9A84C', color: '#080A0F', fontFamily: 'Bebas Neue, cursive' }}>OK</button>
             <button onClick={() => setEditing(false)}><X className="w-4 h-4" style={{ color: '#7A7060' }} /></button>
           </div>
         ) : (
           <div className="flex items-start gap-2">
             <p className="text-sm break-all flex-1" style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#EDE8DC' }}>{display}</p>
             {editable && typeof value !== 'object' && (
-              <button onClick={() => setEditing(true)} className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+              <button onClick={() => setEditing(true)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <Edit3 className="w-3 h-3" style={{ color: '#C9A84C' }} />
               </button>
             )}
@@ -90,47 +95,50 @@ export function AppPage() {
     setError('');
     setEdits({});
     setFileState(null);
+    setStage('uploading');
+
+    // Fake progress during extraction
+    let p = 0;
+    const ticker = setInterval(() => { p = Math.min(p + 12, 88); setProgress(p); }, 150);
 
     try {
-      // 1. Upload to Firebase Storage
-      setStage('uploading');
-      const { storagePath, downloadURL } = await uploadFile(user.uid, file, setProgress);
+      const metadata = await metadataApi.extract(file);
+      clearInterval(ticker);
+      setProgress(100);
 
-      // 2. Extract metadata via Python
-      setStage('extracting');
-      const metadata = await metadataApi.extract(storagePath, file.type);
-
-      // 3. Save record to Firestore
       const firestoreId = await saveFileRecord(user.uid, {
         userId: user.uid,
         originalName: file.name,
-        storagePath,
         mimeType: file.type,
         sizeBytes: file.size,
         metadata,
       });
 
-      setFileState({ file, storagePath, downloadURL, firestoreId, metadata });
+      setFileState({ file, firestoreId, metadata, editedBlob: null });
       setStage('ready');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du traitement');
+      clearInterval(ticker);
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'extraction');
       setStage('idle');
     }
   }
 
   function handleEdit(key: string, value: string) {
     setEdits(prev => ({ ...prev, [key]: value }));
-    setFileState(prev => prev ? { ...prev, metadata: { ...prev.metadata, [key]: value } } : prev);
+    setFileState(prev => prev
+      ? { ...prev, metadata: { ...prev.metadata, [key]: value } }
+      : prev
+    );
   }
 
   async function handleSave() {
     if (!fileState || !Object.keys(edits).length) return;
     setSaving(true);
     try {
-      const updated = await metadataApi.edit(fileState.storagePath, fileState.file.type, edits);
-      setFileState(prev => prev ? { ...prev, metadata: updated } : prev);
+      const { metadata, blob } = await metadataApi.edit(fileState.file, edits);
+      setFileState(prev => prev ? { ...prev, metadata, editedBlob: blob } : prev);
       setEdits({});
-      toast.success('Métadonnées sauvegardées');
+      toast.success('Métadonnées sauvegardées — fichier prêt au téléchargement');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur de sauvegarde');
     } finally {
@@ -138,30 +146,33 @@ export function AppPage() {
     }
   }
 
-  async function handleDownload() {
+  function handleDownload() {
     if (!fileState) return;
-    const url = await getFileURL(fileState.storagePath);
-    window.open(url, '_blank');
+    const blob = fileState.editedBlob ?? fileState.file;
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = fileState.file.name;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function handleDelete() {
-    if (!fileState || !confirm('Supprimer ce fichier définitivement ?')) return;
-    await deleteStorageFile(fileState.storagePath);
+    if (!fileState || !confirm('Supprimer cet enregistrement ?')) return;
     await deleteFileRecord(fileState.firestoreId);
-    setFileState(null);
-    setEdits({});
-    setStage('idle');
-    toast.success('Fichier supprimé');
+    reset();
+    toast.success('Enregistrement supprimé');
   }
 
   function reset() {
     setFileState(null);
     setEdits({});
     setStage('idle');
+    setProgress(0);
     setError('');
   }
 
-  const flatEntries = fileState
+  const flatEntries: [string, unknown][] = fileState
     ? Object.entries(fileState.metadata).flatMap(function flat([k, v]): [string, unknown][] {
         if (typeof v === 'object' && v !== null && !Array.isArray(v))
           return Object.entries(v as Record<string, unknown>).flatMap(([sk, sv]) => flat([`${k}.${sk}`, sv]));
@@ -174,7 +185,6 @@ export function AppPage() {
       <NavBar />
       <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-8">
 
-        {/* Error */}
         <AnimatePresence>
           {error && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -187,7 +197,7 @@ export function AppPage() {
           )}
         </AnimatePresence>
 
-        {/* ── IDLE : drop zone ── */}
+        {/* IDLE */}
         {stage === 'idle' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="text-center mb-10">
@@ -199,15 +209,9 @@ export function AppPage() {
               </p>
             </div>
 
-            <label
-              onDrop={handleDrop}
-              onDragOver={e => e.preventDefault()}
-              className="flex flex-col items-center justify-center gap-4 mx-auto cursor-pointer"
-              style={{
-                maxWidth: 560, height: 280,
-                border: '2px dashed rgba(201,168,76,0.35)',
-                backgroundColor: '#0C101A',
-              }}
+            <label onDrop={handleDrop} onDragOver={e => e.preventDefault()}
+              className="flex flex-col items-center justify-center gap-4 mx-auto cursor-pointer transition-colors"
+              style={{ maxWidth: 560, height: 280, border: '2px dashed rgba(201,168,76,0.35)', backgroundColor: '#0C101A' }}
             >
               <Upload className="w-12 h-12" style={{ color: '#C9A84C', opacity: 0.5 }} />
               <div className="text-center">
@@ -220,8 +224,8 @@ export function AppPage() {
           </motion.div>
         )}
 
-        {/* ── UPLOADING / EXTRACTING ── */}
-        {(stage === 'uploading' || stage === 'extracting') && (
+        {/* LOADING */}
+        {stage === 'uploading' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-32 gap-6">
             <div className="w-16 h-16 relative">
@@ -233,22 +237,15 @@ export function AppPage() {
                   strokeDashoffset={`${2 * Math.PI * 28 * (1 - progress / 100)}`}
                   transition={{ duration: 0.3 }} />
               </svg>
-              {stage === 'extracting' && (
-                <Search className="absolute inset-0 m-auto w-6 h-6" style={{ color: '#C9A84C' }} />
-              )}
+              <Search className="absolute inset-0 m-auto w-6 h-6" style={{ color: '#C9A84C' }} />
             </div>
-            <div className="text-center">
-              <p style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '4px', color: '#C9A84C', fontSize: '14px' }}>
-                {stage === 'uploading' ? `UPLOAD — ${progress}%` : 'EXTRACTION DES MÉTADONNÉES...'}
-              </p>
-              <p className="mt-1" style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '13px', color: '#7A7060' }}>
-                {fileState?.file.name ?? ''}
-              </p>
-            </div>
+            <p style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '4px', color: '#C9A84C', fontSize: '14px' }}>
+              EXTRACTION DES MÉTADONNÉES… {progress}%
+            </p>
           </motion.div>
         )}
 
-        {/* ── READY : metadata panel ── */}
+        {/* READY */}
         {stage === 'ready' && fileState && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             {/* Toolbar */}
@@ -257,6 +254,7 @@ export function AppPage() {
                 <h2 className="text-xl" style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC' }}>{fileState.file.name}</h2>
                 <p className="text-xs mt-0.5" style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}>
                   {flatEntries.length} champs • {(fileState.file.size / 1024 / 1024).toFixed(2)} MB
+                  {fileState.editedBlob && <span style={{ color: '#2AFC98' }}> • ✓ modifié</span>}
                 </p>
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -268,7 +266,8 @@ export function AppPage() {
                 <motion.button onClick={handleDownload} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                   className="px-4 py-2 flex items-center gap-2 text-sm"
                   style={{ border: '1px solid rgba(42,252,152,0.3)', color: '#2AFC98', fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px' }}>
-                  <Download className="w-4 h-4" /> TÉLÉCHARGER
+                  <Download className="w-4 h-4" />
+                  {fileState.editedBlob ? 'TÉL. MODIFIÉ' : 'TÉLÉCHARGER'}
                 </motion.button>
                 {Object.keys(edits).length > 0 && (
                   <motion.button onClick={handleSave} disabled={saving}
@@ -277,7 +276,7 @@ export function AppPage() {
                     className="px-4 py-2 flex items-center gap-2 text-sm"
                     style={{ backgroundColor: '#C9A84C', color: '#080A0F', fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px' }}>
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {saving ? 'SAUVEGARDE...' : `SAUVEGARDER (${Object.keys(edits).length})`}
+                    {saving ? 'TRAITEMENT...' : `APPLIQUER (${Object.keys(edits).length})`}
                   </motion.button>
                 )}
                 <motion.button onClick={handleDelete} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
@@ -289,19 +288,17 @@ export function AppPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Metadata list */}
               <div className="lg:col-span-3" style={{ backgroundColor: '#0C101A', border: '1px solid rgba(201,168,76,0.12)' }}>
                 <div className="px-4 py-4" style={{ borderBottom: '1px solid rgba(201,168,76,0.12)' }}>
                   <h3 style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC', fontSize: '16px' }}>Métadonnées</h3>
                 </div>
-                <div className="max-h-[580px] overflow-y-auto">
+                <div className="max-h-[600px] overflow-y-auto">
                   {flatEntries.map(([key, value]) => (
                     <MetaRow key={key} label={key} value={value} onEdit={handleEdit} />
                   ))}
                 </div>
               </div>
 
-              {/* Summary */}
               <div className="space-y-4">
                 <div style={{ backgroundColor: '#0C101A', border: '1px solid rgba(201,168,76,0.12)', padding: '20px' }}>
                   <h3 className="mb-4" style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC', fontSize: '15px' }}>Résumé</h3>
@@ -318,13 +315,23 @@ export function AppPage() {
                   ))}
                 </div>
 
+                {fileState.editedBlob && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    style={{ backgroundColor: 'rgba(42,252,152,0.08)', border: '1px solid rgba(42,252,152,0.3)', padding: '16px' }}>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" style={{ color: '#2AFC98' }} />
+                      <p style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: '#2AFC98', fontSize: '12px' }}>FICHIER PRÊT</p>
+                    </div>
+                    <p className="mt-2" style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '11px', color: '#7A7060' }}>
+                      Cliquez « TÉL. MODIFIÉ » pour télécharger le fichier avec les nouvelles métadonnées
+                    </p>
+                  </motion.div>
+                )}
+
                 {Object.keys(edits).length > 0 && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     style={{ backgroundColor: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.3)', padding: '16px' }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-4 h-4" style={{ color: '#C9A84C' }} />
-                      <p style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: '#C9A84C', fontSize: '12px' }}>MODIFICATIONS EN ATTENTE</p>
-                    </div>
+                    <p className="mb-2" style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: '#C9A84C', fontSize: '12px' }}>EN ATTENTE</p>
                     <div className="space-y-1">
                       {Object.entries(edits).map(([k, v]) => (
                         <p key={k} style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '11px', color: '#7A7060' }}>

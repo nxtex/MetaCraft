@@ -8,33 +8,46 @@ async function getIdToken(): Promise<string> {
   return user.getIdToken();
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = await getIdToken();
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      ...(options.headers as Record<string, string>),
-    },
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as Record<string, string>).error ?? `HTTP ${res.status}`);
-  }
-  return res.json();
-}
-
 export const metadataApi = {
-  extract: (storagePath: string, mimeType: string) =>
-    request<Record<string, unknown>>('/extract', {
+  // Send file directly, get metadata back
+  extract: async (file: File): Promise<Record<string, unknown>> => {
+    const token = await getIdToken();
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${BASE}/extract`, {
       method: 'POST',
-      body: JSON.stringify({ storage_path: storagePath, mime_type: mimeType }),
-    }),
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error((body as Record<string, string>).error ?? `HTTP ${res.status}`);
+    }
+    return res.json();
+  },
 
-  edit: (storagePath: string, mimeType: string, edits: Record<string, string>) =>
-    request<Record<string, unknown>>('/edit', {
+  // Send file + edits, get modified file as blob
+  edit: async (file: File, edits: Record<string, string>): Promise<{ metadata: Record<string, unknown>; blob: Blob }> => {
+    const token = await getIdToken();
+    const form = new FormData();
+    form.append('file', file);
+    form.append('edits', JSON.stringify(edits));
+    const res = await fetch(`${BASE}/edit`, {
       method: 'POST',
-      body: JSON.stringify({ storage_path: storagePath, mime_type: mimeType, edits }),
-    }),
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error((body as Record<string, string>).error ?? `HTTP ${res.status}`);
+    }
+    // Backend returns JSON with metadata + base64 file
+    const data = await res.json();
+    const byteString = atob(data.file_b64);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+    const blob = new Blob([ab], { type: file.type });
+    return { metadata: data.metadata, blob };
+  },
 };

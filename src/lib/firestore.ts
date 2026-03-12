@@ -8,7 +8,6 @@ export interface FileRecord {
   id: string;
   userId: string;
   originalName: string;
-  storagePath: string;
   mimeType: string;
   sizeBytes: number;
   metadata: Record<string, unknown>;

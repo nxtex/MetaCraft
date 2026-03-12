@@ -1,15 +1,15 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from typing import Any
-import subprocess, json, os, tempfile
+import subprocess, json, os, tempfile, base64
 import firebase_admin
-from firebase_admin import credentials, auth, storage
+from firebase_admin import credentials, auth
+from fastapi import Header
 
 # ── Firebase Admin init ──
 if not firebase_admin._apps:
     cred = credentials.Certificate(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
-    firebase_admin.initialize_app(cred, {"storageBucket": os.environ["FIREBASE_STORAGE_BUCKET"]})
+    firebase_admin.initialize_app(cred)
 
 app = FastAPI(title="MetaCraft Metadata Service")
 
@@ -22,7 +22,7 @@ app.add_middleware(
 )
 
 # ── Auth ──
-async def get_uid(authorization: str = "") -> str:
+async def require_auth(authorization: str = Header(default="")) -> str:
     try:
         token = authorization.removeprefix("Bearer ")
         decoded = auth.verify_id_token(token)
@@ -30,26 +30,7 @@ async def get_uid(authorization: str = "") -> str:
     except Exception:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-from fastapi import Header
-
-async def require_auth(authorization: str = Header(default="")) -> str:
-    return await get_uid(authorization)
-
-# ── Helpers ──
-bucket = storage.bucket
-
-def download_from_storage(storage_path: str) -> tuple[str, str]:
-    """→ (local_tmp_path, suffix)"""
-    suffix = "." + storage_path.rsplit(".", 1)[-1]
-    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
-    blob = bucket().blob(storage_path)
-    blob.download_to_filename(tmp.name)
-    return tmp.name, suffix
-
-def upload_to_storage(local_path: str, storage_path: str) -> None:
-    blob = bucket().blob(storage_path)
-    blob.upload_from_filename(local_path)
-
+# ── ExifTool helpers ──
 def exiftool_extract(path: str) -> dict[str, Any]:
     result = subprocess.run(
         ["exiftool", "-j", "-a", "-G1", path],
@@ -63,21 +44,12 @@ def exiftool_extract(path: str) -> dict[str, Any]:
 def exiftool_edit(path: str, edits: dict[str, str]) -> None:
     args = ["exiftool", "-overwrite_original"]
     for k, v in edits.items():
-        args.append(f"-{k}={v}")
+        clean_key = k.split(".")[-1]  # strip group prefix if any
+        args.append(f"-{clean_key}={v}")
     args.append(path)
     result = subprocess.run(args, capture_output=True, text=True, timeout=30)
     if result.returncode not in (0, 1):
         raise HTTPException(status_code=500, detail=f"ExifTool edit error: {result.stderr}")
-
-# ── Schemas ──
-class ExtractRequest(BaseModel):
-    storage_path: str
-    mime_type: str
-
-class EditRequest(BaseModel):
-    storage_path: str
-    mime_type: str
-    edits: dict[str, str]
 
 # ── Routes ──
 @app.get("/health")
@@ -86,24 +58,34 @@ def health():
 
 @app.post("/extract")
 async def extract(
-    req: ExtractRequest,
+    file: UploadFile = File(...),
     uid: str = Depends(require_auth),
 ) -> dict[str, Any]:
-    local, _ = download_from_storage(req.storage_path)
+    suffix = "." + (file.filename or "file").rsplit(".", 1)[-1]
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
     try:
-        return exiftool_extract(local)
+        return exiftool_extract(tmp_path)
     finally:
-        os.unlink(local)
+        os.unlink(tmp_path)
 
 @app.post("/edit")
 async def edit(
-    req: EditRequest,
+    file: UploadFile = File(...),
+    edits: str = Form(...),  # JSON string
     uid: str = Depends(require_auth),
 ) -> dict[str, Any]:
-    local, _ = download_from_storage(req.storage_path)
+    edits_dict: dict[str, str] = json.loads(edits)
+    suffix = "." + (file.filename or "file").rsplit(".", 1)[-1]
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
     try:
-        exiftool_edit(local, req.edits)
-        upload_to_storage(local, req.storage_path)
-        return exiftool_extract(local)
+        exiftool_edit(tmp_path, edits_dict)
+        metadata = exiftool_extract(tmp_path)
+        with open(tmp_path, "rb") as f:
+            file_b64 = base64.b64encode(f.read()).decode()
+        return {"metadata": metadata, "file_b64": file_b64}
     finally:
-        os.unlink(local)
+        os.unlink(tmp_path)

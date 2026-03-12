@@ -1,9 +1,13 @@
 # MetaCraft — Guide de déploiement
 
 ## Stack
-- **Frontend** — React + Vite, deployé sur **Vercel**
-- **Auth + DB + Storage** — **Firebase** (Authentication, Firestore, Storage)
+- **Frontend** — React + Vite, déployé sur **Vercel**
+- **Auth + DB** — **Firebase** (Authentication + Firestore uniquement, pas de Storage)
 - **Backend métadonnées** — Python FastAPI + ExifTool, déployé sur **Render**
+
+> Les fichiers ne sont **jamais stockés** sur un serveur. Ils sont envoyés directement au backend Python,
+> les métadonnées extractées sont sauvegardées dans Firestore, et le fichier modifié est
+> renvoyé au navigateur pour téléchargement immédiat.
 
 ---
 
@@ -11,8 +15,8 @@
 
 1. Créez un projet sur [console.firebase.google.com](https://console.firebase.google.com)
 2. **Authentication** → Sign-in method → activer **Email/Password** + **Google**
-3. **Firestore Database** → créer une base en mode production
-4. Ajoutez ces règles Firestore :
+3. **Firestore Database** → créer en mode production, région `europe-west3`
+4. Règles Firestore :
 
 ```
 rules_version = '2';
@@ -26,43 +30,29 @@ service cloud.firestore {
 }
 ```
 
-5. **Storage** → créer un bucket + règles :
-
-```
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /users/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
-```
-
-6. **Project Settings** → Your apps → copier les clés dans `.env` (voir `.env.example`)
-7. Téléchargez `serviceAccountKey.json` (Project Settings → Service accounts → Generate new private key)
+5. **Project Settings** → Your apps → ajouter une app Web → copier les clés dans `.env`
+6. **Project Settings** → Service accounts → **Générer une clé privée** → garder `serviceAccountKey.json`
 
 ---
 
 ## 2. Backend Python (Render)
 
-1. Poussez le dossier `backend/` sur un repo (ou utilisez ce repo)
-2. Créez un **Web Service** sur [render.com](https://render.com)
+1. Nouveau **Web Service** sur [render.com](https://render.com)
    - Root Directory : `backend`
    - Build Command : `pip install -r requirements.txt`
    - Start Command : `uvicorn main:app --host 0.0.0.0 --port $PORT`
-3. Variables d’environnement sur Render :
-   - `GOOGLE_APPLICATION_CREDENTIALS` → chemin vers votre `serviceAccountKey.json` (uploadez-le comme Secret File)
-   - `FIREBASE_STORAGE_BUCKET` → `your-project.appspot.com`
-   - `ALLOWED_ORIGIN` → `https://your-vercel-app.vercel.app`
-4. Copiez l’URL Render dans `VITE_PYTHON_API_URL` de votre `.env` Vercel
+2. **Secret Files** → uploader `serviceAccountKey.json` avec le chemin `/etc/secrets/serviceAccountKey.json`
+3. Variables d’environnement :
+   - `GOOGLE_APPLICATION_CREDENTIALS` → `/etc/secrets/serviceAccountKey.json`
+   - `ALLOWED_ORIGIN` → `https://your-app.vercel.app`
+4. Copier l’URL Render dans `VITE_PYTHON_API_URL`
 
 ---
 
 ## 3. Frontend (Vercel)
 
-1. Importez le repo sur [vercel.com](https://vercel.com)
-2. Ajoutez toutes les variables `VITE_*` de `.env.example` dans les settings Vercel
+1. Importer le repo sur [vercel.com](https://vercel.com)
+2. Ajouter les variables d’environnement (`VITE_*` de `.env.example`)
 3. Deploy
 
 ---
@@ -71,13 +61,13 @@ service firebase.storage {
 
 ```bash
 # Frontend
-cp .env.example .env  # remplir les clés Firebase
+cp .env.example .env   # remplir les clés Firebase
 npm install
 npm run dev
 
 # Backend
 cd backend
 export GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json
-export FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+pip install -r requirements.txt
 uvicorn main:app --reload
 ```
