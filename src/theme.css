@@ -1,0 +1,32 @@
+:root {
+  --color-gold: #C9A84C;
+  --color-bg: #080A0F;
+  --color-surface: #0C101A;
+  --color-text: #EDE8DC;
+  --color-muted: #7A7060;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0C101A;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(201,168,76,0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201,168,76,0.6);
+}
