@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { Brush, Github, User } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Brush, Github, User, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function NavBar() {
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
     { path: '/', label: 'Upload' },
@@ -12,9 +14,7 @@ export function NavBar() {
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
-    }
+    if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
 
@@ -24,33 +24,24 @@ export function NavBar() {
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className="sticky top-0 z-50 w-full border-b"
-      style={{
-        backgroundColor: '#0E1219',
-        borderBottomColor: 'rgba(201, 168, 76, 0.2)',
-      }}
+      style={{ backgroundColor: '#0E1219', borderBottomColor: 'rgba(201, 168, 76, 0.2)' }}
     >
-      <div className="max-w-[1800px] mx-auto px-8 py-4 flex items-center justify-between">
+      <div className="max-w-[1800px] mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 group">
-          <motion.div
-            whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-            transition={{ duration: 0.5 }}
-          >
+          <motion.div whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }} transition={{ duration: 0.5 }}>
             <Brush className="w-6 h-6" style={{ color: '#C9A84C' }} />
           </motion.div>
           <span
-            className="text-2xl tracking-wide group-hover:brightness-110 transition-all"
-            style={{
-              fontFamily: 'Cinzel, serif',
-              color: '#C9A84C',
-            }}
+            className="text-xl sm:text-2xl tracking-wide group-hover:brightness-110 transition-all"
+            style={{ fontFamily: 'Cinzel, serif', color: '#C9A84C' }}
           >
             MetaCraft
           </span>
         </Link>
 
-        {/* Center navigation */}
-        <div className="flex items-center gap-8">
+        {/* Desktop navigation */}
+        <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.path}
@@ -69,32 +60,24 @@ export function NavBar() {
                 <motion.div
                   layoutId="activeNav"
                   className="absolute bottom-0 left-0 right-0 h-[2px]"
-                  style={{
-                    backgroundColor: '#C9A84C',
-                    boxShadow: '0 0 8px rgba(201, 168, 76, 0.6)',
-                  }}
+                  style={{ backgroundColor: '#C9A84C', boxShadow: '0 0 8px rgba(201, 168, 76, 0.6)' }}
                 />
               )}
               {!isActive(link.path) && (
                 <div
                   className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{
-                    backgroundColor: '#C9A84C',
-                  }}
+                  style={{ backgroundColor: '#C9A84C' }}
                 />
               )}
             </Link>
           ))}
         </div>
 
-        {/* Right side */}
-        <div className="flex items-center gap-4">
+        {/* Right side - desktop */}
+        <div className="hidden md:flex items-center gap-4">
           <motion.button
             className="p-2 rounded transition-all"
-            style={{
-              border: '1px solid #C9A84C',
-              color: '#C9A84C',
-            }}
+            style={{ border: '1px solid #C9A84C', color: '#C9A84C' }}
             whileHover={{ scale: 1.1, rotate: 360 }}
             transition={{ duration: 0.3 }}
           >
@@ -103,25 +86,81 @@ export function NavBar() {
           <Link to="/profile">
             <motion.div
               className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, #C9A84C, #E8732A)',
-              }}
+              style={{ background: 'linear-gradient(135deg, #C9A84C, #E8732A)' }}
               whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
               transition={{ duration: 0.3 }}
             >
               <User className="w-5 h-5" style={{ color: '#080A0F' }} />
               <motion.div
                 className="absolute inset-0"
-                style={{
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
-                }}
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }}
                 animate={{ x: ['-100%', '200%'] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
             </motion.div>
           </Link>
         </div>
+
+        {/* Mobile: avatar + hamburger */}
+        <div className="flex md:hidden items-center gap-3">
+          <Link to="/profile">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #C9A84C, #E8732A)' }}
+            >
+              <User className="w-4 h-4" style={{ color: '#080A0F' }} />
+            </div>
+          </Link>
+          <button onClick={() => setMenuOpen(!menuOpen)} className="p-1" style={{ color: '#C9A84C' }}>
+            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile dropdown */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden md:hidden border-t"
+            style={{ backgroundColor: '#0E1219', borderTopColor: 'rgba(201, 168, 76, 0.15)' }}
+          >
+            <div className="px-4 py-4 flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMenuOpen(false)}
+                  className="py-2 px-3 transition-all"
+                  style={{
+                    fontFamily: 'Cinzel, serif',
+                    fontSize: '0.9rem',
+                    letterSpacing: '2px',
+                    fontVariant: 'small-caps',
+                    color: isActive(link.path) ? '#C9A84C' : '#EDE8DC',
+                    borderLeft: isActive(link.path) ? '2px solid #C9A84C' : '2px solid transparent',
+                  }}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <a
+                href="https://github.com/nxtex/MetaCraft"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 py-2 px-3 mt-2"
+                style={{ color: '#C9A84C', fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.8rem' }}
+              >
+                <Github className="w-4 h-4" />
+                GitHub
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 }
