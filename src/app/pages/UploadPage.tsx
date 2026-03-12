@@ -5,7 +5,7 @@ import { FileDropZone } from '../components/FileDropZone';
 import { StratumCard } from '../components/StratumCard';
 import { GoogleAdSpace } from '../components/GoogleAdSpace';
 import { ParallaxGlyphs } from '../components/ParallaxGlyphs';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { FileImage, Music, FileText } from 'lucide-react';
 
 export function UploadPage() {

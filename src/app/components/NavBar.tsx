@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router';
 import { Brush, Github, User } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 export function NavBar() {
   const location = useLocation();
