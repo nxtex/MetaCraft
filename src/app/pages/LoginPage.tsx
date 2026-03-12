@@ -1,345 +1,217 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { motion } from 'motion/react';
-import { Brush, Lock, Mail, Eye, EyeOff } from 'lucide-react';
-import { StratumCard } from '../components/StratumCard';
-import { FloatingParticles } from '../components/FloatingParticles';
+import { Brush, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: Location })?.from?.pathname ?? '/';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate login
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/');
-    }, 2000);
-  };
+    setError('');
+    setLoading(true);
+    try {
+      await login(email, password);
+      navigate(from, { replace: true });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erreur de connexion');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ backgroundColor: '#080A0F' }}>
-      <FloatingParticles />
-      
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundColor: '#080A0F' }}
+    >
+      {/* Background glyphs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5" aria-hidden>
+        {['ዳ', 'ዓ', '፡', '፦', '☥', 'ᚷ', 'ᚪ', 'ᚨ'].map((g, i) => (
+          <span
             key={i}
-            className="absolute"
+            className="absolute text-6xl select-none"
             style={{
-              width: '200px',
-              height: '200px',
-              border: '1px solid rgba(201, 168, 76, 0.05)',
-              borderRadius: '50%',
-              left: `${20 + i * 20}%`,
-              top: `${30 + i * 10}%`,
+              color: '#C9A84C',
+              top: `${10 + i * 11}%`,
+              left: `${5 + i * 12}%`,
+              transform: `rotate(${i * 17}deg)`,
             }}
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.1, 0.3, 0.1],
-              rotate: [0, 180, 360],
-            }}
-            transition={{
-              duration: 20 + i * 3,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-          />
+          >{g}</span>
         ))}
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 40, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-md px-6"
+        className="w-full max-w-md relative z-10"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
       >
-        {/* Logo header */}
-        <motion.div
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-        >
+        {/* Logo */}
+        <div className="text-center mb-10">
           <motion.div
-            className="inline-flex items-center justify-center mb-6"
-            whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
-            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-3 mb-6"
+            whileHover={{ scale: 1.05 }}
           >
-            <Brush className="w-16 h-16" style={{ color: '#C9A84C' }} />
-          </motion.div>
-          <h1
-            className="text-5xl mb-3"
-            style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC' }}
-          >
-            MetaCraft
-          </h1>
-          <p
-            className="text-sm"
-            style={{
-              fontFamily: 'Bebas Neue, cursive',
-              letterSpacing: '4px',
-              color: '#C9A84C',
-            }}
-          >
-            EXCAVATION NUMÉRIQUE
-          </p>
-        </motion.div>
-
-        <StratumCard className="p-8 relative overflow-hidden">
-          {/* Animated glow effect */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle at 50% 50%, rgba(201, 168, 76, 0.1), transparent)',
-            }}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-
-          <motion.h2
-            className="text-2xl mb-2 relative z-10"
-            style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            Accès aux Archives
-          </motion.h2>
-          <motion.p
-            className="text-sm mb-8 relative z-10"
-            style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            Authentifiez-vous pour accéder à vos excavations
-          </motion.p>
-
-          <form onSubmit={handleLogin} className="space-y-6 relative z-10">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
+            <Brush className="w-7 h-7" style={{ color: '#C9A84C' }} />
+            <span
+              className="text-3xl tracking-wide"
+              style={{ fontFamily: 'Cinzel, serif', color: '#C9A84C' }}
             >
+              MetaCraft
+            </span>
+          </motion.div>
+          <p
+            className="text-xs tracking-widest"
+            style={{ fontFamily: 'Bebas Neue, cursive', color: '#7A7060', letterSpacing: '4px' }}
+          >
+            OUTIL D’EXCAVATION NUMÉRIQUE
+          </p>
+        </div>
+
+        {/* Card */}
+        <div
+          className="p-8"
+          style={{
+            backgroundColor: '#0E1219',
+            border: '1px solid rgba(201, 168, 76, 0.2)',
+            clipPath: 'polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)',
+          }}
+        >
+          <h2
+            className="text-2xl mb-8"
+            style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC' }}
+          >
+            Connexion
+          </h2>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 p-4 mb-6"
+              style={{ backgroundColor: 'rgba(192, 57, 43, 0.15)', border: '1px solid rgba(192, 57, 43, 0.4)' }}
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#C0392B' }} />
+              <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '13px', color: '#C0392B' }}>{error}</p>
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
+            <div>
               <label
                 className="block mb-2 text-xs"
-                style={{
-                  fontFamily: 'Bebas Neue, cursive',
-                  letterSpacing: '2px',
-                  color: '#C9A84C',
-                }}
+                style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: '#C9A84C' }}
               >
-                Adresse Email
+                Adresse email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#7A7060' }} />
-                <motion.input
+                <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 transition-all"
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  placeholder="vous@exemple.com"
+                  className="w-full pl-10 pr-4 py-3 outline-none transition-all"
                   style={{
                     backgroundColor: '#141C2A',
-                    border: '1px solid rgba(201, 168, 76, 0.3)',
-                    fontFamily: 'JetBrains Mono, monospace',
+                    border: '1px solid rgba(201, 168, 76, 0.2)',
+                    fontFamily: 'IBM Plex Mono, monospace',
                     color: '#EDE8DC',
+                    fontSize: '14px',
                   }}
-                  whileFocus={{
-                    borderColor: '#C9A84C',
-                    boxShadow: '0 0 20px rgba(201, 168, 76, 0.2)',
-                  }}
-                  required
+                  onFocus={e => e.currentTarget.style.borderColor = 'rgba(201, 168, 76, 0.6)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'rgba(201, 168, 76, 0.2)'}
                 />
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7 }}
-            >
+            {/* Password */}
+            <div>
               <label
                 className="block mb-2 text-xs"
-                style={{
-                  fontFamily: 'Bebas Neue, cursive',
-                  letterSpacing: '2px',
-                  color: '#C9A84C',
-                }}
+                style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: '#C9A84C' }}
               >
                 Mot de passe
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#7A7060' }} />
-                <motion.input
+                <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-3 transition-all"
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-12 py-3 outline-none transition-all"
                   style={{
                     backgroundColor: '#141C2A',
-                    border: '1px solid rgba(201, 168, 76, 0.3)',
-                    fontFamily: 'JetBrains Mono, monospace',
+                    border: '1px solid rgba(201, 168, 76, 0.2)',
+                    fontFamily: 'IBM Plex Mono, monospace',
                     color: '#EDE8DC',
+                    fontSize: '14px',
                   }}
-                  whileFocus={{
-                    borderColor: '#C9A84C',
-                    boxShadow: '0 0 20px rgba(201, 168, 76, 0.2)',
-                  }}
-                  required
+                  onFocus={e => e.currentTarget.style.borderColor = 'rgba(201, 168, 76, 0.6)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'rgba(201, 168, 76, 0.2)'}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                   style={{ color: '#7A7060' }}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="flex items-center justify-between"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-            >
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4" style={{ accentColor: '#C9A84C' }} />
-                <span
-                  className="text-xs"
-                  style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}
-                >
-                  Se souvenir
-                </span>
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-xs hover:brightness-125 transition-all"
-                style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#C9A84C' }}
-              >
-                Mot de passe oublié?
-              </Link>
-            </motion.div>
-
+            {/* Submit */}
             <motion.button
               type="submit"
-              className="w-full py-4 relative overflow-hidden"
+              disabled={loading}
+              className="w-full py-3 mt-2 transition-all"
               style={{
-                backgroundColor: '#C9A84C',
+                backgroundColor: loading ? 'rgba(201, 168, 76, 0.5)' : '#C9A84C',
                 color: '#080A0F',
                 fontFamily: 'Bebas Neue, cursive',
                 letterSpacing: '4px',
-                fontSize: '18px',
+                fontSize: '16px',
+                cursor: loading ? 'not-allowed' : 'pointer',
               }}
-              whileHover={{ 
-                scale: 1.02,
-                boxShadow: '0 0 30px rgba(201, 168, 76, 0.5)',
-              }}
-              whileTap={{ scale: 0.98 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-              disabled={isLoading}
+              whileHover={!loading ? { scale: 1.02, boxShadow: '0 0 20px rgba(201, 168, 76, 0.4)' } : {}}
+              whileTap={!loading ? { scale: 0.98 } : {}}
             >
-              {isLoading && (
-                <motion.div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
-                  }}
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                />
-              )}
-              {isLoading ? 'EXCAVATION EN COURS...' : 'ACCÉDER AUX ARCHIVES'}
+              {loading ? 'CONNEXION...' : 'SE CONNECTER'}
             </motion.button>
           </form>
 
-          <motion.div
-            className="mt-8 text-center relative z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            <div
-              className="mb-4"
-              style={{
-                height: '1px',
-                background: 'linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.3), transparent)',
-              }}
-            />
-            <p
-              className="text-sm"
-              style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}
-            >
-              Nouveau fouilleur?{' '}
-              <Link
-                to="/signup"
-                className="hover:brightness-125 transition-all"
-                style={{ color: '#C9A84C' }}
-              >
-                Créer un compte
-              </Link>
-            </p>
-          </motion.div>
-        </StratumCard>
-
-        {/* Social login options */}
-        <motion.div
-          className="mt-6 text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.1 }}
-        >
           <p
-            className="text-xs mb-4"
+            className="text-center mt-6 text-sm"
             style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}
           >
-            ou continuer avec
+            Pas encore de compte ?{' '}
+            <Link
+              to="/signup"
+              style={{ color: '#C9A84C' }}
+              className="hover:brightness-125 transition-all"
+            >
+              Créer un compte
+            </Link>
           </p>
-          <div className="flex gap-4 justify-center">
-            {['Google', 'GitHub', 'Discord'].map((provider, index) => (
-              <motion.button
-                key={provider}
-                className="px-6 py-3 transition-all"
-                style={{
-                  border: '1px dashed rgba(201, 168, 76, 0.4)',
-                  color: '#EDE8DC',
-                  fontFamily: 'Bebas Neue, cursive',
-                  letterSpacing: '2px',
-                  backgroundColor: 'transparent',
-                }}
-                whileHover={{
-                  borderColor: '#C9A84C',
-                  borderStyle: 'solid',
-                  backgroundColor: 'rgba(201, 168, 76, 0.1)',
-                }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2 + index * 0.1 }}
-              >
-                {provider}
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );

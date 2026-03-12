@@ -1,39 +1,37 @@
-import { createBrowserRouter } from "react-router";
-import { UploadPage } from "./pages/UploadPage";
-import { MetadataPage } from "./pages/MetadataPage";
-import { BatchAnalysisPage } from "./pages/BatchAnalysisPage";
-import { HistoryPage } from "./pages/HistoryPage";
-import { LoginPage } from "./pages/LoginPage";
-import { SignupPage } from "./pages/SignupPage";
-import { ProfilePage } from "./pages/ProfilePage";
+import { createBrowserRouter } from 'react-router';
+import { PrivateRoute } from './components/PrivateRoute';
+import { UploadPage } from './pages/UploadPage';
+import { MetadataPage } from './pages/MetadataPage';
+import { BatchAnalysisPage } from './pages/BatchAnalysisPage';
+import { HistoryPage } from './pages/HistoryPage';
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 export const router = createBrowserRouter([
+  // ── Public routes
+  { path: '/login',  Component: LoginPage },
+  { path: '/signup', Component: SignupPage },
+
+  // ── Protected routes
   {
-    path: "/",
-    Component: UploadPage,
+    path: '/',
+    element: <PrivateRoute><UploadPage /></PrivateRoute>,
   },
   {
-    path: "/metadata/:fileId",
-    Component: MetadataPage,
+    path: '/metadata/:fileId',
+    element: <PrivateRoute><MetadataPage /></PrivateRoute>,
   },
   {
-    path: "/batch",
-    Component: BatchAnalysisPage,
+    path: '/batch',
+    element: <PrivateRoute><BatchAnalysisPage /></PrivateRoute>,
   },
   {
-    path: "/history",
-    Component: HistoryPage,
+    path: '/history',
+    element: <PrivateRoute><HistoryPage /></PrivateRoute>,
   },
   {
-    path: "/login",
-    Component: LoginPage,
-  },
-  {
-    path: "/signup",
-    Component: SignupPage,
-  },
-  {
-    path: "/profile",
-    Component: ProfilePage,
+    path: '/profile',
+    element: <PrivateRoute><ProfilePage /></PrivateRoute>,
   },
 ]);
