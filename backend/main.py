@@ -15,8 +15,8 @@ app = FastAPI(title="MetaCraft Metadata Service")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.environ.get("ALLOWED_ORIGIN", "*")],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -44,7 +44,7 @@ def exiftool_extract(path: str) -> dict[str, Any]:
 def exiftool_edit(path: str, edits: dict[str, str]) -> None:
     args = ["exiftool", "-overwrite_original"]
     for k, v in edits.items():
-        clean_key = k.split(".")[-1]  # strip group prefix if any
+        clean_key = k.split(".")[-1]
         args.append(f"-{clean_key}={v}")
     args.append(path)
     result = subprocess.run(args, capture_output=True, text=True, timeout=30)
@@ -73,7 +73,7 @@ async def extract(
 @app.post("/edit")
 async def edit(
     file: UploadFile = File(...),
-    edits: str = Form(...),  # JSON string
+    edits: str = Form(...),
     uid: str = Depends(require_auth),
 ) -> dict[str, Any]:
     edits_dict: dict[str, str] = json.loads(edits)
