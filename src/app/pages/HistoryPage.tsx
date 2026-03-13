@@ -9,135 +9,192 @@ import { deleteStorageFile } from '../../lib/storage';
 import { toast } from 'sonner';
 
 function mimeIcon(mime: string) {
-  if (mime.startsWith('image/')) return <FileImage className="w-4 h-4" style={{ color: '#C9A84C' }} />;
-  if (mime.startsWith('audio/')) return <Music className="w-4 h-4" style={{ color: '#2AFC98' }} />;
-  if (mime === 'application/pdf') return <FileText className="w-4 h-4" style={{ color: '#E8732A' }} />;
-  if (mime.startsWith('video/')) return <Film className="w-4 h-4" style={{ color: '#A052C8' }} />;
-  return <File className="w-4 h-4" style={{ color: '#7A7060' }} />;
+  if (mime.startsWith('image/')) return <FileImage className="w-4 h-4 text-[#c9a84c]" />;
+  if (mime.startsWith('audio/')) return <Music className="w-4 h-4 text-[#22c55e]" />;
+  if (mime === 'application/pdf') return <FileText className="w-4 h-4 text-[#f59e0b]" />;
+  if (mime.startsWith('video/')) return <Film className="w-4 h-4 text-[#8b5cf6]" />;
+  return <File className="w-4 h-4 text-[#6b6b6b]" />;
 }
 
 function fmtSize(b: number) {
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
-  return `${(b / 1024 / 1024).toFixed(1)} MB`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+  return `${(b / 1024 / 1024).toFixed(1)} MB`;
 }
 
 function fmtDate(ts: { seconds: number }) {
-  return new Date(ts.seconds * 1000).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(ts.seconds * 1000).toLocaleDateString('fr-FR', { 
+    day: '2-digit', 
+    month: 'short', 
+    year: 'numeric' 
+  });
 }
 
 export function HistoryPage() {
-  const { user }   = useAuth();
-  const navigate   = useNavigate();
-  const [files, setFiles]     = useState<FileRecord[]>([]);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [files, setFiles] = useState<FileRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch]   = useState('');
+  const [search, setSearch] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
   async function load() {
     if (!user) return;
     setLoading(true);
-    try { setFiles(await getUserFiles(user.uid)); }
-    catch { toast.error('Impossible de charger l\'historique'); }
-    finally { setLoading(false); }
+    try {
+      setFiles(await getUserFiles(user.uid));
+    } catch {
+      toast.error('Impossible de charger l\'historique');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, [user]);
 
   async function handleDelete(f: FileRecord) {
-    if (!confirm('Supprimer ce fichier définitivement ?')) return;
+    if (!confirm('Supprimer ce fichier definitivement ?')) return;
     setDeleting(f.id);
     try {
       await deleteStorageFile(f.storagePath);
       await deleteFileRecord(f.id);
       setFiles(prev => prev.filter(r => r.id !== f.id));
-      toast.success('Supprimé');
-    } catch { toast.error('Erreur lors de la suppression'); }
-    finally { setDeleting(null); }
+      toast.success('Supprime');
+    } catch {
+      toast.error('Erreur lors de la suppression');
+    } finally {
+      setDeleting(null);
+    }
   }
 
   const filtered = files.filter(f => f.originalName.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#080A0F' }}>
+    <div className="min-h-screen bg-[#050505]">
       <NavBar />
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      
+      <div className="max-w-6xl mx-auto px-6 lg:px-12 py-12">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl" style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC' }}>Historique</h1>
-            <p className="text-xs mt-1" style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}>{files.length} fichier{files.length !== 1 ? 's' : ''}</p>
+            <h1 className="text-2xl sm:text-3xl text-[#f5f5f5]" style={{ fontFamily: 'Cinzel, serif' }}>
+              Historique
+            </h1>
+            <p className="text-xs text-[#6b6b6b] mt-1" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
+              {files.length} fichier{files.length !== 1 ? 's' : ''} analyse{files.length !== 1 ? 's' : ''}
+            </p>
           </div>
-          <motion.button onClick={load} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 text-sm self-start"
-            style={{ border: '1px solid rgba(201,168,76,0.3)', color: '#C9A84C', fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px' }}>
-            <RefreshCw className="w-4 h-4" /> ACTUALISER
+          <motion.button 
+            onClick={load} 
+            whileHover={{ scale: 1.02 }} 
+            whileTap={{ scale: 0.98 }}
+            className="self-start flex items-center gap-2 px-4 py-2.5 text-xs border border-[#c9a84c]/20 text-[#c9a84c] hover:bg-[#c9a84c]/5 transition-colors"
+            style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.1em' }}
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> ACTUALISER
           </motion.button>
         </div>
 
+        {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#7A7060' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher..."
-            className="w-full pl-10 pr-4 py-3 outline-none"
-            style={{ backgroundColor: '#141C2A', border: '1px solid rgba(201,168,76,0.2)', fontFamily: 'IBM Plex Mono, monospace', color: '#EDE8DC', fontSize: '14px' }} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3f3f3f]" />
+          <input 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            placeholder="Rechercher..."
+            className="w-full pl-12 pr-4 py-3.5 bg-[#0a0a0a] border border-[#1c1c1c] text-[#f5f5f5] text-sm placeholder:text-[#262626] focus:border-[#c9a84c]/20 focus:outline-none transition-colors"
+            style={{ fontFamily: 'IBM Plex Mono, monospace' }} 
+          />
         </div>
 
+        {/* Content */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 gap-4">
-            <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#C9A84C' }} />
+            <Loader2 className="w-8 h-8 animate-spin text-[#c9a84c]" />
           </div>
         ) : (
-          <div style={{ backgroundColor: '#0C101A', border: '1px solid rgba(201,168,76,0.12)' }}>
+          <div className="bg-[#0a0a0a] border border-[#141414]">
             <div className="overflow-x-auto">
-              <table className="w-full" style={{ minWidth: 480 }}>
+              <table className="w-full" style={{ minWidth: 500 }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(201,168,76,0.18)' }}>
-                    {['Fichier', 'Type', 'Taille', 'Date', 'Actions'].map(h => (
-                      <th key={h} className="px-4 py-4 text-left text-xs"
-                        style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: '#C9A84C' }}>{h}</th>
+                  <tr className="border-b border-[#1c1c1c]">
+                    {['Fichier', 'Type', 'Taille', 'Date', ''].map(h => (
+                      <th 
+                        key={h} 
+                        className="px-5 py-4 text-left text-[10px] text-[#c9a84c]"
+                        style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.15em' }}
+                      >
+                        {h}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   <AnimatePresence>
                     {filtered.length === 0 ? (
-                      <tr><td colSpan={5} className="px-4 py-12 text-center"
-                        style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060', fontSize: '14px' }}>
-                        {files.length === 0 ? 'Aucun fichier analysé pour l’instant' : 'Aucun résultat'}
-                      </td></tr>
+                      <tr>
+                        <td 
+                          colSpan={5} 
+                          className="px-5 py-16 text-center text-sm text-[#3f3f3f]"
+                          style={{ fontFamily: 'IBM Plex Mono, monospace' }}
+                        >
+                          {files.length === 0 ? 'Aucun fichier analyse' : 'Aucun resultat'}
+                        </td>
+                      </tr>
                     ) : filtered.map(f => (
-                      <motion.tr key={f.id}
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        style={{ borderBottom: '1px solid rgba(201,168,76,0.06)' }}
-                        whileHover={{ backgroundColor: 'rgba(201,168,76,0.04)' }}>
-                        <td className="px-4 py-4">
+                      <motion.tr 
+                        key={f.id}
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }}
+                        className="border-b border-[#141414] hover:bg-[#0f0f0f] transition-colors"
+                      >
+                        <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             {mimeIcon(f.mimeType)}
-                            <span className="text-sm truncate max-w-[200px]"
-                              style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#EDE8DC' }}>{f.originalName}</span>
+                            <span 
+                              className="text-sm text-[#d4d4d4] truncate max-w-[200px]"
+                              style={{ fontFamily: 'IBM Plex Mono, monospace' }}
+                            >
+                              {f.originalName}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 hidden sm:table-cell">
-                          <span className="text-xs px-2 py-0.5"
-                            style={{ backgroundColor: 'rgba(201,168,76,0.1)', fontFamily: 'Bebas Neue, cursive', letterSpacing: '1px', color: '#C9A84C' }}>
+                        <td className="px-5 py-4 hidden sm:table-cell">
+                          <span 
+                            className="text-[10px] px-2 py-1 bg-[#c9a84c]/10 text-[#c9a84c]"
+                            style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.1em' }}
+                          >
                             {f.mimeType.split('/')[1]?.toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
-                          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px', color: '#7A7060' }}>{fmtSize(f.sizeBytes)}</span>
+                        <td className="px-5 py-4">
+                          <span className="text-xs text-[#6b6b6b]" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
+                            {fmtSize(f.sizeBytes)}
+                          </span>
                         </td>
-                        <td className="px-4 py-4 hidden sm:table-cell">
-                          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px', color: '#7A7060' }}>
+                        <td className="px-5 py-4 hidden sm:table-cell">
+                          <span className="text-xs text-[#6b6b6b]" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
                             {f.createdAt ? fmtDate(f.createdAt) : '—'}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
-                          <div className="flex gap-3">
-                            <button onClick={() => navigate('/app')} title="Analyser">
-                              <ExternalLink className="w-4 h-4" style={{ color: '#C9A84C' }} />
+                        <td className="px-5 py-4">
+                          <div className="flex gap-3 justify-end">
+                            <button 
+                              onClick={() => navigate('/app')} 
+                              title="Analyser"
+                              className="p-1.5 hover:bg-[#c9a84c]/10 transition-colors"
+                            >
+                              <ExternalLink className="w-4 h-4 text-[#c9a84c]" />
                             </button>
-                            <button onClick={() => handleDelete(f)} disabled={deleting === f.id}>
+                            <button 
+                              onClick={() => handleDelete(f)} 
+                              disabled={deleting === f.id}
+                              className="p-1.5 hover:bg-[#f43f5e]/10 transition-colors"
+                            >
                               {deleting === f.id
-                                ? <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#C0392B' }} />
-                                : <Trash2 className="w-4 h-4" style={{ color: '#C0392B' }} />}
+                                ? <Loader2 className="w-4 h-4 animate-spin text-[#f43f5e]" />
+                                : <Trash2 className="w-4 h-4 text-[#f43f5e]" />
+                              }
                             </button>
                           </div>
                         </td>

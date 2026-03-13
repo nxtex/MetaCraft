@@ -20,8 +20,8 @@ interface FileState {
 }
 
 const EDITABLE = new Set([
-  'title','author','subject','creator','artist','album','genre',
-  'date','copyright','comment','description','imagedescription'
+  'title', 'author', 'subject', 'creator', 'artist', 'album', 'genre',
+  'date', 'copyright', 'comment', 'description', 'imagedescription'
 ]);
 
 function MetaRow({ label, value, onEdit }: {
@@ -30,64 +30,73 @@ function MetaRow({ label, value, onEdit }: {
   onEdit: (key: string, val: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft]     = useState(String(value ?? ''));
+  const [draft, setDraft] = useState(String(value ?? ''));
   const editable = EDITABLE.has(label.toLowerCase().split('.').pop() ?? '');
-  const display  = typeof value === 'object' && value !== null
+  const display = typeof value === 'object' && value !== null
     ? JSON.stringify(value)
     : String(value ?? '—');
 
   return (
-    <motion.div 
-      className="flex items-start gap-3 py-4 px-5 group border-b border-[#1a1a1a] hover:bg-[#111111]/50 transition-colors"
-      initial={false}
-    >
-      <ChevronRight className="w-3 h-3 mt-1.5 flex-shrink-0 text-[#d4af37]/40" />
+    <div className="flex items-start gap-3 py-4 px-5 group border-b border-[#141414] hover:bg-[#0a0a0a] transition-colors">
+      <ChevronRight className="w-3 h-3 mt-1.5 flex-shrink-0 text-[#c9a84c]/30" />
       <div className="flex-1 min-w-0">
-        <p className="text-xs mb-1.5 font-bebas tracking-[0.15em] text-[#d4af37]">{label}</p>
+        <p 
+          className="text-[10px] mb-1.5 text-[#c9a84c]"
+          style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.15em' }}
+        >
+          {label}
+        </p>
         {editing ? (
           <div className="flex gap-2">
             <input 
               autoFocus 
               value={draft} 
               onChange={e => setDraft(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm bg-[#0a0a0a] border border-[#d4af37]/50 text-[#f5f5f5] font-ibm-plex-mono focus:outline-none"
+              className="flex-1 px-3 py-2 text-sm bg-[#050505] border border-[#c9a84c]/30 text-[#f5f5f5] focus:outline-none"
+              style={{ fontFamily: 'IBM Plex Mono, monospace' }}
             />
             <button 
               onClick={() => { onEdit(label, draft); setEditing(false); }}
-              className="px-4 py-2 text-xs bg-[#d4af37] text-[#0a0a0a] font-bebas tracking-wider"
+              className="px-4 py-2 text-xs bg-[#c9a84c] text-[#050505]"
+              style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.1em' }}
             >
               OK
             </button>
-            <button onClick={() => setEditing(false)}>
-              <X className="w-4 h-4 text-[#8a8a8a] hover:text-[#f5f5f5]" />
+            <button onClick={() => setEditing(false)} className="px-2">
+              <X className="w-4 h-4 text-[#6b6b6b] hover:text-[#f5f5f5]" />
             </button>
           </div>
         ) : (
           <div className="flex items-start gap-2">
-            <p className="text-sm break-all flex-1 text-[#f5f5f5] font-ibm-plex-mono">{display}</p>
+            <p 
+              className="text-sm break-all flex-1 text-[#d4d4d4]"
+              style={{ fontFamily: 'IBM Plex Mono, monospace' }}
+            >
+              {display}
+            </p>
             {editable && typeof value !== 'object' && (
               <button 
                 onClick={() => setEditing(true)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 hover:bg-[#d4af37]/10 rounded"
+                className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1.5 hover:bg-[#c9a84c]/10"
               >
-                <Edit3 className="w-3 h-3 text-[#d4af37]" />
+                <Edit3 className="w-3 h-3 text-[#c9a84c]" />
               </button>
             )}
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export function AppPage() {
   const { user } = useAuth();
-  const [stage, setStage]         = useState<Stage>('idle');
-  const [progress, setProgress]   = useState(0);
+  const [stage, setStage] = useState<Stage>('idle');
+  const [progress, setProgress] = useState(0);
   const [fileState, setFileState] = useState<FileState | null>(null);
-  const [edits, setEdits]         = useState<Record<string, string>>({});
-  const [saving, setSaving]       = useState(false);
-  const [error, setError]         = useState('');
+  const [edits, setEdits] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
@@ -109,7 +118,7 @@ export function AppPage() {
     setStage('uploading');
 
     let p = 0;
-    const ticker = setInterval(() => { p = Math.min(p + 12, 88); setProgress(p); }, 150);
+    const ticker = setInterval(() => { p = Math.min(p + 10, 90); setProgress(p); }, 120);
 
     try {
       const metadata = await metadataApi.extract(file);
@@ -148,7 +157,7 @@ export function AppPage() {
       const { metadata, blob } = await metadataApi.edit(fileState.file, edits);
       setFileState(prev => prev ? { ...prev, metadata, editedBlob: blob } : prev);
       setEdits({});
-      toast.success('Metadonnees sauvegardees — fichier pret au telechargement');
+      toast.success('Metadonnees sauvegardees');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur de sauvegarde');
     } finally {
@@ -159,9 +168,9 @@ export function AppPage() {
   function handleDownload() {
     if (!fileState) return;
     const blob = fileState.editedBlob ?? fileState.file;
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
     a.download = fileState.file.name;
     a.click();
     URL.revokeObjectURL(url);
@@ -191,35 +200,35 @@ export function AppPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen bg-[#050505]">
       <NavBar />
       
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12">
         <AnimatePresence>
           {error && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }} 
               animate={{ opacity: 1, y: 0 }} 
               exit={{ opacity: 0 }}
-              className="flex items-center gap-3 p-4 mb-8 bg-[#dc2626]/10 border border-[#dc2626]/30"
+              className="flex items-center gap-3 p-4 mb-8 bg-[#f43f5e]/5 border border-[#f43f5e]/20"
             >
-              <AlertCircle className="w-4 h-4 text-[#dc2626]" />
-              <p className="text-sm text-[#dc2626] font-ibm-plex-mono">{error}</p>
+              <AlertCircle className="w-4 h-4 text-[#f43f5e]" />
+              <p className="text-sm text-[#f43f5e]" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>{error}</p>
               <button onClick={() => setError('')} className="ml-auto">
-                <X className="w-4 h-4 text-[#dc2626]" />
+                <X className="w-4 h-4 text-[#f43f5e]" />
               </button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* IDLE STATE */}
+        {/* IDLE */}
         {stage === 'idle' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="text-center mb-12">
-              <h1 className="font-cinzel text-4xl sm:text-5xl text-[#f5f5f5] mb-4">
+              <h1 className="text-3xl sm:text-4xl text-[#f5f5f5] mb-4" style={{ fontFamily: 'Cinzel, serif' }}>
                 Analysez vos fichiers
               </h1>
-              <p className="text-[#8a8a8a] font-ibm-plex-mono">
+              <p className="text-sm text-[#6b6b6b]" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
                 Glissez un fichier ou cliquez pour le selectionner
               </p>
             </div>
@@ -227,15 +236,24 @@ export function AppPage() {
             <label 
               onDrop={handleDrop} 
               onDragOver={e => e.preventDefault()}
-              className="flex flex-col items-center justify-center gap-6 mx-auto cursor-pointer transition-all duration-300 hover:border-[#d4af37]/40 hover:bg-[#111111]/50 group"
-              style={{ maxWidth: 640, height: 320, border: '2px dashed #2a2a2a', backgroundColor: '#0d0d0d' }}
+              className="flex flex-col items-center justify-center gap-6 mx-auto cursor-pointer transition-all duration-300 hover:border-[#c9a84c]/30 group"
+              style={{ 
+                maxWidth: 560, 
+                height: 280, 
+                border: '1px dashed #1c1c1c', 
+                backgroundColor: '#0a0a0a' 
+              }}
             >
-              <div className="w-20 h-20 rounded-full bg-[#d4af37]/10 flex items-center justify-center group-hover:bg-[#d4af37]/20 transition-colors">
-                <Upload className="w-8 h-8 text-[#d4af37]/60 group-hover:text-[#d4af37] transition-colors" />
+              <div className="w-16 h-16 bg-[#c9a84c]/5 flex items-center justify-center group-hover:bg-[#c9a84c]/10 transition-colors">
+                <Upload className="w-6 h-6 text-[#c9a84c]/50 group-hover:text-[#c9a84c] transition-colors" />
               </div>
               <div className="text-center">
-                <p className="font-cinzel text-xl text-[#f5f5f5] mb-2">Deposez votre fichier ici</p>
-                <p className="text-sm text-[#8a8a8a] font-ibm-plex-mono">JPEG, PNG, MP3, PDF, MP4...</p>
+                <p className="text-lg text-[#f5f5f5] mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                  Deposez votre fichier
+                </p>
+                <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
+                  JPEG, PNG, MP3, PDF, MP4...
+                </p>
               </div>
               <input 
                 type="file" 
@@ -247,7 +265,7 @@ export function AppPage() {
           </motion.div>
         )}
 
-        {/* UPLOADING STATE */}
+        {/* UPLOADING */}
         {stage === 'uploading' && (
           <motion.div 
             initial={{ opacity: 0 }} 
@@ -256,57 +274,66 @@ export function AppPage() {
           >
             <div className="w-24 h-24 relative">
               <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
-                <circle cx="48" cy="48" r="42" fill="none" stroke="#1a1a1a" strokeWidth="4" />
+                <circle cx="48" cy="48" r="42" fill="none" stroke="#141414" strokeWidth="3" />
                 <motion.circle 
-                  cx="48" cy="48" r="42" fill="none" stroke="#d4af37" strokeWidth="4"
+                  cx="48" cy="48" r="42" fill="none" stroke="#c9a84c" strokeWidth="3"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 42}`}
                   strokeDashoffset={`${2 * Math.PI * 42 * (1 - progress / 100)}`}
                   transition={{ duration: 0.3 }} 
                 />
               </svg>
-              <Search className="absolute inset-0 m-auto w-8 h-8 text-[#d4af37]" />
+              <Search className="absolute inset-0 m-auto w-7 h-7 text-[#c9a84c]" />
             </div>
             <div className="text-center">
-              <p className="font-bebas tracking-[0.2em] text-[#d4af37] text-lg mb-2">
-                EXTRACTION DES METADONNEES
+              <p 
+                className="text-xs text-[#c9a84c] mb-3"
+                style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.2em' }}
+              >
+                EXTRACTION EN COURS
               </p>
-              <p className="text-3xl font-cinzel text-[#f5f5f5]">{progress}%</p>
+              <p className="text-3xl text-[#f5f5f5]" style={{ fontFamily: 'Cinzel, serif' }}>
+                {progress}%
+              </p>
             </div>
           </motion.div>
         )}
 
-        {/* READY STATE */}
+        {/* READY */}
         {stage === 'ready' && fileState && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
               <div>
-                <h2 className="font-cinzel text-2xl text-[#f5f5f5] mb-1">{fileState.file.name}</h2>
-                <p className="text-sm text-[#8a8a8a] font-ibm-plex-mono">
-                  {flatEntries.length} champs • {(fileState.file.size / 1024 / 1024).toFixed(2)} MB
-                  {fileState.editedBlob && <span className="text-[#10b981]"> • Modifie</span>}
+                <h2 className="text-xl text-[#f5f5f5] mb-1" style={{ fontFamily: 'Cinzel, serif' }}>
+                  {fileState.file.name}
+                </h2>
+                <p className="text-xs text-[#6b6b6b]" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
+                  {flatEntries.length} champs &middot; {(fileState.file.size / 1024 / 1024).toFixed(2)} MB
+                  {fileState.editedBlob && <span className="text-[#22c55e]"> &middot; Modifie</span>}
                 </p>
               </div>
               
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex gap-2 flex-wrap">
                 <motion.button 
                   onClick={reset} 
                   whileHover={{ scale: 1.02 }} 
                   whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 flex items-center gap-2 text-sm border border-[#2a2a2a] text-[#8a8a8a] hover:text-[#f5f5f5] hover:border-[#3a3a3a] font-bebas tracking-[0.1em] transition-colors rounded-full"
+                  className="px-4 py-2.5 flex items-center gap-2 text-xs border border-[#1c1c1c] text-[#6b6b6b] hover:text-[#f5f5f5] hover:border-[#262626] transition-colors"
+                  style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.1em' }}
                 >
-                  <RefreshCw className="w-4 h-4" /> NOUVEAU
+                  <RefreshCw className="w-3.5 h-3.5" /> NOUVEAU
                 </motion.button>
                 
                 <motion.button 
                   onClick={handleDownload} 
                   whileHover={{ scale: 1.02 }} 
                   whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 flex items-center gap-2 text-sm border border-[#10b981]/30 text-[#10b981] hover:bg-[#10b981]/10 font-bebas tracking-[0.1em] transition-colors rounded-full"
+                  className="px-4 py-2.5 flex items-center gap-2 text-xs border border-[#22c55e]/20 text-[#22c55e] hover:bg-[#22c55e]/5 transition-colors"
+                  style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.1em' }}
                 >
-                  <Download className="w-4 h-4" />
-                  {fileState.editedBlob ? 'TEL. MODIFIE' : 'TELECHARGER'}
+                  <Download className="w-3.5 h-3.5" />
+                  {fileState.editedBlob ? 'TELECHARGER MODIFIE' : 'TELECHARGER'}
                 </motion.button>
                 
                 {Object.keys(edits).length > 0 && (
@@ -317,10 +344,11 @@ export function AppPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     whileHover={{ scale: 1.02 }} 
                     whileTap={{ scale: 0.98 }}
-                    className="px-5 py-2.5 flex items-center gap-2 text-sm bg-[#d4af37] text-[#0a0a0a] font-bebas tracking-[0.1em] rounded-full disabled:opacity-50"
+                    className="px-4 py-2.5 flex items-center gap-2 text-xs bg-[#c9a84c] text-[#050505] disabled:opacity-50"
+                    style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.1em' }}
                   >
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {saving ? 'TRAITEMENT...' : `APPLIQUER (${Object.keys(edits).length})`}
+                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                    {saving ? 'SAUVEGARDE...' : `APPLIQUER (${Object.keys(edits).length})`}
                   </motion.button>
                 )}
                 
@@ -328,21 +356,24 @@ export function AppPage() {
                   onClick={handleDelete} 
                   whileHover={{ scale: 1.02 }} 
                   whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2.5 flex items-center gap-2 text-sm border border-[#dc2626]/30 text-[#dc2626] hover:bg-[#dc2626]/10 font-bebas tracking-[0.1em] transition-colors rounded-full"
+                  className="px-4 py-2.5 flex items-center gap-2 text-xs border border-[#f43f5e]/20 text-[#f43f5e] hover:bg-[#f43f5e]/5 transition-colors"
+                  style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.1em' }}
                 >
-                  <Trash2 className="w-4 h-4" /> SUPPRIMER
+                  <Trash2 className="w-3.5 h-3.5" />
                 </motion.button>
               </div>
             </div>
 
-            {/* Content Grid */}
+            {/* Content */}
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-              {/* Metadata Panel */}
-              <div className="xl:col-span-3 bg-[#0d0d0d] border border-[#1a1a1a]">
-                <div className="px-5 py-4 border-b border-[#1a1a1a]">
-                  <h3 className="font-cinzel text-lg text-[#f5f5f5]">Metadonnees</h3>
+              {/* Metadata */}
+              <div className="xl:col-span-3 bg-[#0a0a0a] border border-[#141414]">
+                <div className="px-5 py-4 border-b border-[#141414]">
+                  <h3 className="text-base text-[#f5f5f5]" style={{ fontFamily: 'Cinzel, serif' }}>
+                    Metadonnees
+                  </h3>
                 </div>
-                <div className="max-h-[600px] overflow-y-auto">
+                <div className="max-h-[550px] overflow-y-auto">
                   {flatEntries.map(([key, value]) => (
                     <MetaRow key={key} label={key} value={value} onEdit={handleEdit} />
                   ))}
@@ -350,51 +381,67 @@ export function AppPage() {
               </div>
 
               {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Summary Card */}
-                <div className="bg-[#0d0d0d] border border-[#1a1a1a] p-6">
-                  <h3 className="font-cinzel text-[#f5f5f5] mb-6">Resume</h3>
+              <div className="space-y-4">
+                {/* Summary */}
+                <div className="bg-[#0a0a0a] border border-[#141414] p-6">
+                  <h3 className="text-sm text-[#f5f5f5] mb-6" style={{ fontFamily: 'Cinzel, serif' }}>
+                    Resume
+                  </h3>
                   {[
-                    { label: 'Champs',    value: flatEntries.length },
+                    { label: 'Champs', value: flatEntries.length },
                     { label: 'Editables', value: flatEntries.filter(([k]) => EDITABLE.has(k.toLowerCase().split('.').pop() ?? '')).length },
-                    { label: 'Modifies',  value: Object.keys(edits).length },
+                    { label: 'Modifies', value: Object.keys(edits).length },
                   ].map(s => (
-                    <div key={s.label} className="flex justify-between py-3 border-b border-[#1a1a1a] last:border-0">
-                      <span className="text-sm text-[#8a8a8a] font-ibm-plex-mono">{s.label}</span>
-                      <span className="font-cinzel text-2xl text-[#d4af37]">{s.value}</span>
+                    <div key={s.label} className="flex justify-between py-3 border-b border-[#141414] last:border-0">
+                      <span className="text-xs text-[#6b6b6b]" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
+                        {s.label}
+                      </span>
+                      <span className="text-lg text-[#c9a84c]" style={{ fontFamily: 'Cinzel, serif' }}>
+                        {s.value}
+                      </span>
                     </div>
                   ))}
                 </div>
 
-                {/* Modified File Ready */}
+                {/* Ready */}
                 {fileState.editedBlob && (
                   <motion.div 
                     initial={{ opacity: 0 }} 
                     animate={{ opacity: 1 }}
-                    className="bg-[#10b981]/5 border border-[#10b981]/20 p-5"
+                    className="bg-[#22c55e]/5 border border-[#22c55e]/15 p-5"
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-4 h-4 text-[#10b981]" />
-                      <p className="font-bebas tracking-[0.15em] text-[#10b981] text-sm">FICHIER PRET</p>
+                      <CheckCircle className="w-4 h-4 text-[#22c55e]" />
+                      <p 
+                        className="text-xs text-[#22c55e]"
+                        style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.15em' }}
+                      >
+                        FICHIER PRET
+                      </p>
                     </div>
-                    <p className="text-xs text-[#8a8a8a] font-ibm-plex-mono leading-relaxed">
-                      Cliquez TEL. MODIFIE pour telecharger le fichier avec les nouvelles metadonnees
+                    <p className="text-[10px] text-[#6b6b6b] leading-relaxed" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
+                      Cliquez sur Telecharger pour obtenir le fichier avec les nouvelles metadonnees.
                     </p>
                   </motion.div>
                 )}
 
-                {/* Pending Edits */}
+                {/* Pending */}
                 {Object.keys(edits).length > 0 && (
                   <motion.div 
                     initial={{ opacity: 0 }} 
                     animate={{ opacity: 1 }}
-                    className="bg-[#d4af37]/5 border border-[#d4af37]/20 p-5"
+                    className="bg-[#c9a84c]/5 border border-[#c9a84c]/15 p-5"
                   >
-                    <p className="font-bebas tracking-[0.15em] text-[#d4af37] text-sm mb-3">EN ATTENTE</p>
+                    <p 
+                      className="text-xs text-[#c9a84c] mb-3"
+                      style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '0.15em' }}
+                    >
+                      EN ATTENTE
+                    </p>
                     <div className="space-y-2">
                       {Object.entries(edits).map(([k, v]) => (
-                        <p key={k} className="text-xs text-[#8a8a8a] font-ibm-plex-mono">
-                          <span className="text-[#d4af37]">{k}</span>: {v}
+                        <p key={k} className="text-[10px] text-[#6b6b6b]" style={{ fontFamily: 'IBM Plex Mono, monospace' }}>
+                          <span className="text-[#c9a84c]">{k}</span>: {v}
                         </p>
                       ))}
                     </div>
