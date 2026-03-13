@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Upload, History, User, Brush, LogOut } from 'lucide-react';
+import { Upload, History, User, Layers, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const NAV = [
@@ -20,44 +20,62 @@ export function NavBar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between px-4 sm:px-8 py-4"
-      style={{ backgroundColor: 'rgba(8,10,15,0.95)', borderBottom: '1px solid rgba(201,168,76,0.15)', backdropFilter: 'blur(12px)' }}>
-      <Link to="/" className="flex items-center gap-2 no-underline">
-        <Brush className="w-5 h-5" style={{ color: '#C9A84C' }} />
-        <span className="hidden sm:inline" style={{ fontFamily: 'Cinzel, serif', color: '#C9A84C', letterSpacing: '2px', fontSize: '18px' }}>MetaCraft</span>
-      </Link>
-
-      <div className="flex items-center gap-1">
-        {NAV.map(({ path, icon: Icon, label }) => {
-          const active = location.pathname === path;
-          return (
-            <Link key={path} to={path}>
-              <motion.div className="flex items-center gap-1.5 px-2 sm:px-3 py-2 text-xs"
-                style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: active ? '#C9A84C' : '#7A7060', borderBottom: active ? '2px solid #C9A84C' : '2px solid transparent' }}
-                whileHover={{ color: '#C9A84C' }}>
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{label}</span>
-              </motion.div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {user && (
-        <div className="flex items-center gap-3">
-          <span className="hidden md:inline text-xs" style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}>
-            {user.displayName ?? user.email}
+    <nav className="sticky top-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-[#d4af37]/10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-8 h-8 rounded-full bg-[#d4af37]/10 flex items-center justify-center group-hover:bg-[#d4af37]/20 transition-colors">
+            <Layers className="w-4 h-4 text-[#d4af37]" />
+          </div>
+          <span className="hidden sm:inline font-cinzel text-base tracking-[0.2em] text-[#d4af37]">
+            METACRAFT
           </span>
-          <motion.button onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs"
-            style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: '#7A7060', border: '1px solid rgba(192,57,43,0.3)' }}
-            whileHover={{ color: '#C0392B', borderColor: 'rgba(192,57,43,0.7)' }}
-            whileTap={{ scale: 0.95 }}>
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">DÉCO</span>
-          </motion.button>
+        </Link>
+
+        {/* Navigation Links */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {NAV.map(({ path, icon: Icon, label }) => {
+            const active = location.pathname === path;
+            return (
+              <Link key={path} to={path}>
+                <motion.div 
+                  className={`
+                    flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-full text-sm
+                    transition-all duration-200
+                    ${active 
+                      ? 'bg-[#d4af37]/10 text-[#d4af37]' 
+                      : 'text-[#8a8a8a] hover:text-[#f5f5f5] hover:bg-[#1a1a1a]'
+                    }
+                  `}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="hidden sm:inline font-bebas tracking-[0.1em]">{label}</span>
+                </motion.div>
+              </Link>
+            );
+          })}
         </div>
-      )}
+
+        {/* User Info & Logout */}
+        {user && (
+          <div className="flex items-center gap-4">
+            <span className="hidden md:inline text-xs text-[#8a8a8a] font-ibm-plex-mono truncate max-w-[150px]">
+              {user.displayName ?? user.email}
+            </span>
+            <motion.button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm text-[#8a8a8a] border border-[#dc2626]/30 rounded-full hover:text-[#dc2626] hover:border-[#dc2626]/60 transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline font-bebas tracking-[0.1em]">DECO</span>
+            </motion.button>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }

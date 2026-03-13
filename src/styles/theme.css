@@ -1,20 +1,25 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* MetaCraft Digital Archaeology Color System */
-  --color-abyssal-black: #080A0F;
-  --color-stratum-dark: #0E1219;
-  --color-deep-stratum: #141C2A;
-  --color-archaeological-gold: #C9A84C;
-  --color-amber-fossil: #E8732A;
-  --color-sonar-green: #2AFC98;
-  --color-parchment-white: #EDE8DC;
-  --color-dust-gray: #7A7060;
-  --color-fragment-red: #C0392B;
+  /* MetaCraft Refined Color System */
+  --color-void: #0a0a0a;
+  --color-obsidian: #111111;
+  --color-carbon: #1a1a1a;
+  --color-graphite: #222222;
+  --color-slate: #2a2a2a;
+  --color-ash: #3a3a3a;
+  --color-sterling: #8a8a8a;
+  --color-silver: #a0a0a0;
+  --color-pearl: #e8e8e8;
+  --color-ivory: #f5f5f5;
   
-  /* Additional shades */
-  --color-stratum-lighter: #1E2535;
-  --color-purple-accent: #A052C8;
+  /* Accent Colors */
+  --color-gold: #d4af37;
+  --color-gold-muted: #b8972f;
+  --color-gold-bright: #f0d060;
+  --color-emerald: #10b981;
+  --color-coral: #f97316;
+  --color-crimson: #dc2626;
 
   /* Typography */
   --font-cinzel: 'Cinzel', serif;
@@ -29,20 +34,20 @@
 }
 
 @theme inline {
-  --color-background: var(--color-abyssal-black);
-  --color-foreground: var(--color-parchment-white);
-  --color-card: var(--color-stratum-dark);
-  --color-card-foreground: var(--color-parchment-white);
-  --color-primary: var(--color-archaeological-gold);
-  --color-primary-foreground: var(--color-abyssal-black);
-  --color-secondary: var(--color-amber-fossil);
-  --color-secondary-foreground: var(--color-parchment-white);
-  --color-muted: var(--color-dust-gray);
-  --color-muted-foreground: var(--color-dust-gray);
-  --color-destructive: var(--color-fragment-red);
-  --color-destructive-foreground: var(--color-parchment-white);
-  --color-border: rgba(201, 168, 76, 0.25);
-  --color-input: var(--color-deep-stratum);
+  --color-background: var(--color-void);
+  --color-foreground: var(--color-ivory);
+  --color-card: var(--color-obsidian);
+  --color-card-foreground: var(--color-ivory);
+  --color-primary: var(--color-gold);
+  --color-primary-foreground: var(--color-void);
+  --color-secondary: var(--color-coral);
+  --color-secondary-foreground: var(--color-ivory);
+  --color-muted: var(--color-sterling);
+  --color-muted-foreground: var(--color-silver);
+  --color-destructive: var(--color-crimson);
+  --color-destructive-foreground: var(--color-ivory);
+  --color-border: rgba(212, 175, 55, 0.15);
+  --color-input: var(--color-carbon);
 }
 
 @layer base {
@@ -52,35 +57,40 @@
 
   html {
     font-size: var(--font-size);
+    scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--color-abyssal-black);
-    color: var(--color-parchment-white);
+    background-color: var(--color-void);
+    color: var(--color-ivory);
     font-family: var(--font-ibm-plex-mono);
     position: relative;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2 {
     font-family: var(--font-cinzel);
-    color: var(--color-parchment-white);
-    line-height: 1.2;
+    color: var(--color-ivory);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
 
   h1 {
-    font-size: 2.5rem;
+    font-size: clamp(2.5rem, 8vw, 5rem);
     font-weight: var(--font-weight-medium);
   }
 
   h2 {
-    font-size: 2rem;
+    font-size: clamp(1.75rem, 5vw, 3rem);
     font-weight: var(--font-weight-medium);
   }
 
   h3 {
     font-size: 1.5rem;
     font-weight: var(--font-weight-medium);
+    font-family: var(--font-cinzel);
   }
 
   h4 {
@@ -93,6 +103,7 @@
     font-size: 0.875rem;
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+    letter-spacing: 0.1em;
   }
 
   button {
@@ -100,6 +111,7 @@
     font-size: 1rem;
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+    transition: all 0.2s ease;
   }
 
   input {
@@ -107,6 +119,11 @@
     font-size: 0.875rem;
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+
+  ::selection {
+    background-color: var(--color-gold);
+    color: var(--color-void);
   }
 }
 

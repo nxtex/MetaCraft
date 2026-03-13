@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Brush, FileImage, FileAudio, FileText, Film, CheckCircle2, XCircle } from 'lucide-react';
+import { Layers, FileImage, FileAudio, FileText, Film, CheckCircle2, XCircle, Upload } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface FileDropZoneProps {
@@ -79,6 +79,27 @@ export function FileDropZone({
 
   const currentState = state !== 'idle' ? state : (isDragging ? 'dragover' : (isInvalid ? 'invalid' : 'idle'));
 
+  const getBorderStyle = () => {
+    switch (currentState) {
+      case 'dragover': return '2px solid #d4af37';
+      case 'invalid': return '2px solid #dc2626';
+      case 'success': return '2px solid #10b981';
+      case 'loading': return '2px solid #d4af37';
+      case 'hover': return '2px solid rgba(212, 175, 55, 0.5)';
+      default: return '2px dashed #2a2a2a';
+    }
+  };
+
+  const getBackgroundStyle = () => {
+    switch (currentState) {
+      case 'dragover': return '#111111';
+      case 'invalid': return 'rgba(220, 38, 38, 0.05)';
+      case 'success': return 'rgba(16, 185, 129, 0.05)';
+      case 'hover': return '#111111';
+      default: return '#0d0d0d';
+    }
+  };
+
   return (
     <div className="relative w-full">
       <input
@@ -98,181 +119,109 @@ export function FileDropZone({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         style={{
-          backgroundColor: currentState === 'dragover' ? 'rgba(201, 168, 76, 0.07)' :
-                          currentState === 'invalid' ? 'rgba(192, 57, 43, 0.06)' :
-                          currentState === 'success' ? 'rgba(42, 252, 152, 0.04)' :
-                          currentState === 'hover' ? 'rgba(201, 168, 76, 0.03)' :
-                          '#0E1219',
-          border: currentState === 'dragover' ? '2px solid #C9A84C' :
-                  currentState === 'invalid' ? '2px solid #C0392B' :
-                  currentState === 'success' ? '2px solid #2AFC98' :
-                  currentState === 'loading' ? '2px solid #C9A84C' :
-                  currentState === 'hover' ? '2px solid #C9A84C' :
-                  '2px dashed rgba(201, 168, 76, 0.35)',
-          clipPath: 'polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)',
-          boxShadow: currentState === 'dragover' ? '0 0 32px rgba(201, 168, 76, 0.25)' :
-                     currentState === 'invalid' ? '0 0 24px rgba(192, 57, 43, 0.2)' :
-                     currentState === 'success' ? '0 0 20px rgba(42, 252, 152, 0.15)' :
-                     currentState === 'hover' ? '0 0 0 4px rgba(201, 168, 76, 0.12)' :
-                     'none',
+          backgroundColor: getBackgroundStyle(),
+          border: getBorderStyle(),
         }}
       >
-        {/* Grid overlay */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{
-            opacity: currentState === 'dragover' ? 0.12 : 
-                    currentState === 'invalid' ? 0.08 : 0.06,
-            clipPath: 'polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)',
-          }}
-        >
-          <defs>
-            <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path
-                d="M 40 0 L 0 0 0 40"
-                fill="none"
-                stroke={currentState === 'invalid' ? '#C0392B' : '#C9A84C'}
-                strokeWidth="0.5"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-
-        <div className="relative z-10 flex flex-col items-center justify-center py-12 px-8 min-h-[220px]">
+        <div className="relative z-10 flex flex-col items-center justify-center py-16 px-8 min-h-[280px]">
+          {/* LOADING STATE */}
           {currentState === 'loading' && (
             <>
               <motion.div
-                className="w-12 h-12 mb-4"
+                className="w-16 h-16 mb-6 rounded-full bg-[#d4af37]/10 flex items-center justify-center"
                 animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
               >
-                <Brush className="w-12 h-12" style={{ color: '#C9A84C' }} />
+                <Layers className="w-8 h-8 text-[#d4af37]" />
               </motion.div>
-              <p
-                className="text-base mb-2"
-                style={{ fontFamily: 'JetBrains Mono, monospace', color: '#EDE8DC' }}
-              >
+              <p className="font-ibm-plex-mono text-[#f5f5f5] mb-1">
                 {fileName}
               </p>
-              <p
-                className="text-sm mb-4"
-                style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}
-              >
+              <p className="text-sm font-ibm-plex-mono text-[#8a8a8a] mb-6">
                 {fileSize}
               </p>
-              <div className="w-full max-w-md">
-                <div className="flex justify-between items-center mb-1">
-                  <span
-                    className="text-xs"
-                    style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}
-                  >
-                    Excavation en cours...
+              <div className="w-full max-w-sm">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-ibm-plex-mono text-[#8a8a8a]">
+                    Extraction en cours...
                   </span>
-                  <span
-                    className="text-xs"
-                    style={{ fontFamily: 'JetBrains Mono, monospace', color: '#C9A84C' }}
-                  >
+                  <span className="text-xs font-ibm-plex-mono text-[#d4af37]">
                     {progress}%
                   </span>
                 </div>
-                <div
-                  className="w-full h-[3px] overflow-hidden"
-                  style={{ backgroundColor: 'rgba(201, 168, 76, 0.15)' }}
-                >
-                  <div
-                    className="h-full transition-all duration-300"
-                    style={{
-                      width: `${progress}%`,
-                      background: 'linear-gradient(90deg, #C9A84C, #E8732A)',
-                    }}
+                <div className="w-full h-1 bg-[#1a1a1a] overflow-hidden">
+                  <motion.div
+                    className="h-full bg-[#d4af37]"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.3 }}
                   />
                 </div>
               </div>
             </>
           )}
 
+          {/* SUCCESS STATE */}
           {currentState === 'success' && (
             <>
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ duration: 0.2 }}
+                transition={{ type: 'spring', stiffness: 200 }}
+                className="w-16 h-16 mb-6 rounded-full bg-[#10b981]/10 flex items-center justify-center"
               >
-                <CheckCircle2 className="w-12 h-12 mb-4" style={{ color: '#2AFC98' }} />
+                <CheckCircle2 className="w-8 h-8 text-[#10b981]" />
               </motion.div>
-              <p
-                className="text-lg mb-2"
-                style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC', fontWeight: 600 }}
-              >
+              <p className="font-cinzel text-xl text-[#f5f5f5] mb-2">
                 {fileName}
               </p>
-              <p
-                className="text-sm mb-6"
-                style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#2AFC98' }}
-              >
-                Artefact analysé — {fragmentCount} fragments identifiés
+              <p className="text-sm font-ibm-plex-mono text-[#10b981] mb-6">
+                Analyse terminee — {fragmentCount} champs extraits
               </p>
               <div className="flex gap-4">
                 <button
-                  className="px-6 py-2 transition-all hover:brightness-110 active:scale-95"
-                  style={{
-                    backgroundColor: '#C9A84C',
-                    color: '#080A0F',
-                    fontFamily: 'Bebas Neue, cursive',
-                    letterSpacing: '3px',
-                  }}
+                  className="px-6 py-3 bg-[#d4af37] text-[#0a0a0a] font-bebas tracking-[0.15em] rounded-full hover:scale-[1.02] transition-transform"
                 >
-                  Explorer les métadonnées
+                  EXPLORER
                 </button>
                 <button
-                  className="px-6 py-2 transition-all hover:border-opacity-100"
-                  style={{
-                    border: '1.5px dashed rgba(201, 168, 76, 0.5)',
-                    color: '#EDE8DC',
-                    fontFamily: 'Bebas Neue, cursive',
-                    letterSpacing: '3px',
-                    backgroundColor: 'transparent',
-                  }}
+                  className="px-6 py-3 border border-[#2a2a2a] text-[#f5f5f5] font-bebas tracking-[0.15em] rounded-full hover:border-[#3a3a3a] transition-colors"
                 >
-                  Déposer un autre fichier
+                  NOUVEAU FICHIER
                 </button>
               </div>
             </>
           )}
 
+          {/* INVALID STATE */}
           {currentState === 'invalid' && (
             <>
               <motion.div
-                animate={{ x: [-4, 4, -4, 4, 0] }}
+                animate={{ x: [-3, 3, -3, 3, 0] }}
                 transition={{ duration: 0.3 }}
+                className="w-16 h-16 mb-6 rounded-full bg-[#dc2626]/10 flex items-center justify-center"
               >
-                <XCircle className="w-12 h-12 mb-4" style={{ color: '#C0392B' }} />
+                <XCircle className="w-8 h-8 text-[#dc2626]" />
               </motion.div>
-              <p
-                className="text-lg mb-2"
-                style={{ fontFamily: 'Cinzel, serif', color: '#C0392B' }}
-              >
+              <p className="font-cinzel text-lg text-[#dc2626] mb-2">
                 Format non reconnu
               </p>
-              <p
-                className="text-sm"
-                style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}
-              >
-                Formats acceptés: JPG, PNG, MP3, MP4, PDF
+              <p className="text-sm font-ibm-plex-mono text-[#8a8a8a]">
+                Formats acceptes: JPG, PNG, MP3, MP4, PDF
               </p>
             </>
           )}
 
-          {(currentState === 'idle' || currentState === 'hover' || currentState === 'dragover') && currentState !== 'loading' && currentState !== 'success' && (
+          {/* IDLE / HOVER / DRAGOVER STATE */}
+          {(currentState === 'idle' || currentState === 'hover' || currentState === 'dragover') && (
             <>
               <motion.div
-                animate={currentState === 'dragover' ? { scale: 1.25 } : { scale: 1 }}
+                animate={currentState === 'dragover' ? { scale: 1.1 } : { scale: 1 }}
                 transition={{ duration: 0.2 }}
+                className="w-20 h-20 mb-6 rounded-full bg-[#d4af37]/10 flex items-center justify-center"
               >
-                <Brush
-                  className={currentState === 'dragover' ? 'w-[60px] h-[60px] mb-4' : 'w-12 h-12 mb-4'}
-                  style={{ color: '#C9A84C' }}
+                <Upload 
+                  className={`${currentState === 'dragover' ? 'w-10 h-10' : 'w-8 h-8'} text-[#d4af37] transition-all`}
                 />
               </motion.div>
 
@@ -281,73 +230,56 @@ export function FileDropZone({
                   {[0, 1, 2].map((i) => (
                     <motion.div
                       key={i}
-                      className="absolute w-24 h-24 rounded-full border-2"
+                      className="absolute w-24 h-24 rounded-full border border-[#d4af37]"
                       style={{
-                        borderColor: '#C9A84C',
                         top: '50%',
                         left: '50%',
                         marginLeft: '-48px',
                         marginTop: '-48px',
                       }}
-                      initial={{ scale: 0.8, opacity: 0.8 }}
+                      initial={{ scale: 0.8, opacity: 0.6 }}
                       animate={{ scale: 2.5, opacity: 0 }}
                       transition={{
                         duration: 2,
                         repeat: Infinity,
-                        delay: i * 0.6,
+                        delay: i * 0.5,
                       }}
                     />
                   ))}
                 </>
               )}
 
-              <p
-                className="text-lg mb-2"
-                style={{
-                  fontFamily: 'Cinzel, serif',
-                  color: currentState === 'dragover' ? '#C9A84C' : '#EDE8DC',
-                }}
-              >
+              <p className={`font-cinzel text-xl mb-2 ${currentState === 'dragover' ? 'text-[#d4af37]' : 'text-[#f5f5f5]'}`}>
                 {currentState === 'dragover'
-                  ? 'Libérez pour déposer l\'artefact'
-                  : 'Déposez votre artefact numérique'}
+                  ? 'Deposez pour analyser'
+                  : 'Deposez votre fichier ici'}
               </p>
+              
               {currentState !== 'dragover' && (
-                <p
-                  className="text-sm mb-6"
-                  style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}
-                >
-                  ou{' '}
-                  <span className="underline" style={{ color: '#C9A84C' }}>
-                    cliquez
-                  </span>{' '}
-                  pour parcourir vos fichiers
-                </p>
-              )}
-              {currentState !== 'dragover' && (
-                <div className="flex gap-2 flex-wrap justify-center">
-                  {[
-                    { icon: FileImage, label: 'JPEG' },
-                    { icon: FileImage, label: 'PNG' },
-                    { icon: FileAudio, label: 'MP3' },
-                    { icon: Film, label: 'MP4' },
-                    { icon: FileText, label: 'PDF' },
-                  ].map((format) => (
-                    <span
-                      key={format.label}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs"
-                      style={{
-                        border: '1px solid #C9A84C',
-                        color: '#C9A84C',
-                        fontFamily: 'Bebas Neue, cursive',
-                        letterSpacing: '1px',
-                      }}
-                    >
-                      <format.icon className="w-3 h-3" />
-                      {format.label}
-                    </span>
-                  ))}
-                </div>
+                <>
+                  <p className="text-sm font-ibm-plex-mono text-[#8a8a8a] mb-8">
+                    ou{' '}
+                    <span className="text-[#d4af37] underline underline-offset-2">cliquez</span>{' '}
+                    pour parcourir
+                  </p>
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    {[
+                      { icon: FileImage, label: 'JPEG' },
+                      { icon: FileImage, label: 'PNG' },
+                      { icon: FileAudio, label: 'MP3' },
+                      { icon: Film, label: 'MP4' },
+                      { icon: FileText, label: 'PDF' },
+                    ].map((format) => (
+                      <span
+                        key={format.label}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bebas tracking-wider text-[#d4af37] border border-[#d4af37]/30 rounded-full"
+                      >
+                        <format.icon className="w-3 h-3" />
+                        {format.label}
+                      </span>
+                    ))}
+                  </div>
+                </>
               )}
             </>
           )}

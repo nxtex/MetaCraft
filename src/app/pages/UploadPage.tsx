@@ -2,11 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { NavBar } from '../components/NavBar';
 import { FileDropZone } from '../components/FileDropZone';
-import { StratumCard } from '../components/StratumCard';
-import { GoogleAdSpace } from '../components/GoogleAdSpace';
-import { ParallaxGlyphs } from '../components/ParallaxGlyphs';
 import { motion } from 'motion/react';
-import { FileImage, Music, FileText, AlertCircle } from 'lucide-react';
+import { FileImage, Music, FileText, AlertCircle, Film } from 'lucide-react';
 import { files as filesApi, APIError } from '../lib/api';
 
 export function UploadPage() {
@@ -23,7 +20,6 @@ export function UploadPage() {
     setUploadState('loading');
     setError('');
 
-    // Fake progress while uploading
     let p = 0;
     const ticker = setInterval(() => {
       p = Math.min(p + 8, 85);
@@ -46,49 +42,66 @@ export function UploadPage() {
     }
   };
 
+  const fileTypes = [
+    { icon: FileImage, title: 'Images', color: '#d4af37', desc: 'EXIF, GPS, IPTC' },
+    { icon: Music, title: 'Audio', color: '#10b981', desc: 'ID3, Artiste, Album' },
+    { icon: FileText, title: 'Documents', color: '#f97316', desc: 'Auteur, Titre, XMP' },
+    { icon: Film, title: 'Video', color: '#8b5cf6', desc: 'Duree, Codec, GPS' },
+  ];
+
   return (
-    <div className="min-h-screen relative" style={{ backgroundColor: '#080A0F' }}>
-      <ParallaxGlyphs />
+    <div className="min-h-screen bg-[#0a0a0a]">
       <NavBar />
 
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-8 sm:py-16 relative z-10">
-        <div className="flex justify-center mb-6 sm:mb-8">
-          <GoogleAdSpace slot="upload-header" format="horizontal" />
-        </div>
-
-        <div className="text-center mb-10 sm:mb-16">
-          <motion.p className="mb-4 px-2"
-            style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '4px', color: '#C9A84C', fontSize: '11px' }}
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+      <div className="max-w-5xl mx-auto px-6 sm:px-8 py-16">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <motion.span 
+            className="inline-block px-4 py-2 text-xs tracking-[0.3em] text-[#d4af37] border border-[#d4af37]/20 rounded-full font-bebas mb-6"
+            initial={{ opacity: 0, y: -20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.6 }}
           >
-            METACRAFT — OUTIL D’EXCAVATION NUMÉRIQUE
-          </motion.p>
-          <motion.h1 className="mb-6 px-4"
-            style={{ fontFamily: 'Cinzel, serif', fontSize: 'clamp(26px, 6vw, 52px)', color: '#EDE8DC', lineHeight: 1.2 }}
-            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.2 }}
+            EXCAVATION NUMERIQUE
+          </motion.span>
+          
+          <motion.h1 
+            className="font-cinzel text-4xl sm:text-5xl lg:text-6xl text-[#f5f5f5] mb-6 leading-tight"
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            transition={{ duration: 0.8, delay: 0.1 }}
           >
-            Révélez les couches cachées de vos fichiers
+            Revelez les couches<br />cachees de vos fichiers
           </motion.h1>
-          <motion.p className="max-w-[560px] mx-auto px-4"
-            style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 'clamp(13px, 2.5vw, 16px)', color: '#7A7060', lineHeight: 1.6 }}
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}
+          
+          <motion.p 
+            className="max-w-xl mx-auto text-[#8a8a8a] font-ibm-plex-mono leading-relaxed"
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.8, delay: 0.3 }}
           >
-            Chargez n’importe quel fichier — image, audio, PDF, vidéo — et inspectez ou modifiez instantanément ses métadonnées.
+            Chargez n'importe quel fichier — image, audio, PDF, video — et inspectez ou modifiez instantanement ses metadonnees.
           </motion.p>
         </div>
 
+        {/* Error Display */}
         {error && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="flex items-center gap-3 p-4 mb-6 max-w-[620px] mx-auto"
-            style={{ backgroundColor: 'rgba(192,57,43,0.15)', border: '1px solid rgba(192,57,43,0.4)' }}
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }}
+            className="flex items-center gap-3 p-4 mb-8 max-w-xl mx-auto bg-[#dc2626]/10 border border-[#dc2626]/30"
           >
-            <AlertCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#C0392B' }} />
-            <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '13px', color: '#C0392B' }}>{error}</p>
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-[#dc2626]" />
+            <p className="text-sm text-[#dc2626] font-ibm-plex-mono">{error}</p>
           </motion.div>
         )}
 
-        <motion.div className="w-full max-w-[620px] mx-auto mb-10 sm:mb-16"
-          initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
+        {/* Drop Zone */}
+        <motion.div 
+          className="w-full max-w-xl mx-auto mb-16"
+          initial={{ opacity: 0, y: 40 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.8, delay: 0.4 }}
         >
           <FileDropZone
             onFileSelect={handleFileSelect}
@@ -100,31 +113,32 @@ export function UploadPage() {
           />
         </motion.div>
 
-        <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-[900px] mx-auto mb-8"
-          initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.8 }}
+        {/* File Types Grid */}
+        <motion.div 
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-3xl mx-auto"
+          initial={{ opacity: 0, y: 40 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.8, delay: 0.6 }}
         >
-          {[
-            { icon: FileImage, title: 'Images JPEG', color: '#C9A84C', desc: 'EXIF, GPS, Appareil' },
-            { icon: Music,     title: 'Fichiers MP3', color: '#2AFC98', desc: 'ID3, Artiste, Album, BPM' },
-            { icon: FileText,  title: 'Documents PDF', color: '#E8732A', desc: 'Auteur, Titre, XMP, Pages' },
-          ].map((item, index) => (
-            <motion.div key={item.title} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1 + index * 0.1 }}>
-              <StratumCard hover className="p-4 sm:p-6">
-                <motion.div className="flex items-center gap-4" whileHover={{ x: 4 }} transition={{ duration: 0.2 }}>
-                  <item.icon className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0" style={{ color: item.color, opacity: 0.6 }} />
-                  <div className="flex-1">
-                    <h3 className="text-sm mb-1" style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: item.color }}>{item.title}</h3>
-                    <p className="text-xs" style={{ fontFamily: 'IBM Plex Mono, monospace', color: '#7A7060' }}>{item.desc}</p>
-                  </div>
-                </motion.div>
-              </StratumCard>
+          {fileTypes.map((item, index) => (
+            <motion.div 
+              key={item.title}
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              transition={{ delay: 0.7 + index * 0.1 }}
+              className="p-5 bg-[#111111] border border-[#1a1a1a] hover:border-[#2a2a2a] transition-colors group"
+            >
+              <item.icon 
+                className="w-8 h-8 mb-3 opacity-60 group-hover:opacity-100 transition-opacity" 
+                style={{ color: item.color }} 
+              />
+              <h3 className="font-bebas tracking-[0.1em] text-sm mb-1" style={{ color: item.color }}>
+                {item.title}
+              </h3>
+              <p className="text-xs text-[#8a8a8a] font-ibm-plex-mono">{item.desc}</p>
             </motion.div>
           ))}
         </motion.div>
-
-        <div className="flex justify-center mt-8 sm:mt-12">
-          <GoogleAdSpace slot="upload-footer" format="horizontal" />
-        </div>
       </div>
     </div>
   );

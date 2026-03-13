@@ -1,209 +1,307 @@
 import { Link } from 'react-router';
-import { motion } from 'motion/react';
-import { Brush, Upload, Search, Edit3, Shield, Zap, Globe, ChevronRight } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'motion/react';
+import { useRef } from 'react';
+import { 
+  Upload, Search, Edit3, Shield, Zap, Globe, 
+  ArrowRight, Layers, FileImage, Music, FileText, Film,
+  ChevronDown
+} from 'lucide-react';
 
 const FEATURES = [
   {
     icon: Upload,
-    color: '#C9A84C',
-    title: 'Upload instantané',
-    desc: 'Glissez n\'importe quel fichier — image, audio, PDF, vidéo. Stockage sécurisé sur Firebase Storage.',
+    title: 'Upload instantane',
+    desc: 'Glissez n\'importe quel fichier. Stockage securise et prive.',
   },
   {
     icon: Search,
-    color: '#2AFC98',
-    title: 'Extraction complète',
-    desc: 'Lecture de toutes les couches : EXIF, GPS, ID3, XMP, PDF Info. Rien n\'est caché.',
+    title: 'Extraction complete',
+    desc: 'Lecture de toutes les couches : EXIF, GPS, ID3, XMP, PDF Info.',
   },
   {
     icon: Edit3,
-    color: '#E8732A',
-    title: 'Édition précise',
-    desc: 'Modifiez les champs un par un et sauvegardez directement dans le fichier via ExifTool.',
+    title: 'Edition precise',
+    desc: 'Modifiez les champs un par un et sauvegardez directement.',
   },
   {
     icon: Shield,
-    color: '#A052C8',
-    title: 'Données privées',
-    desc: 'Chaque utilisateur ne voit que ses propres fichiers. Isolation totale via Firebase Auth.',
+    title: 'Donnees privees',
+    desc: 'Chaque utilisateur ne voit que ses propres fichiers.',
   },
   {
     icon: Zap,
-    color: '#C9A84C',
-    title: 'Temps réel',
-    desc: 'Résultats en quelques secondes. Pas d\'attente, pas de queue.',
+    title: 'Temps reel',
+    desc: 'Resultats en quelques secondes. Pas d\'attente.',
   },
   {
     icon: Globe,
-    color: '#2AFC98',
     title: 'Accessible partout',
-    desc: 'Application web, aucune installation. Fonctionne sur desktop et mobile.',
+    desc: 'Application web, aucune installation requise.',
   },
 ];
 
-const SUPPORTED = [
-  { ext: 'JPEG / PNG / WebP / TIFF', tags: ['EXIF', 'GPS', 'IPTC', 'XMP'] },
-  { ext: 'MP3 / FLAC / WAV / OGG',  tags: ['ID3v2', 'Artiste', 'Album', 'BPM'] },
-  { ext: 'PDF',                      tags: ['Auteur', 'Titre', 'XMP', 'Pages'] },
-  { ext: 'MP4 / MOV / AVI',         tags: ['Durée', 'Codec', 'Date', 'GPS'] },
+const FORMATS = [
+  { icon: FileImage, label: 'Images', formats: 'JPEG, PNG, WebP, TIFF', tags: ['EXIF', 'GPS', 'IPTC', 'XMP'] },
+  { icon: Music, label: 'Audio', formats: 'MP3, FLAC, WAV, OGG', tags: ['ID3v2', 'Artiste', 'Album'] },
+  { icon: FileText, label: 'Documents', formats: 'PDF', tags: ['Auteur', 'Titre', 'XMP'] },
+  { icon: Film, label: 'Video', formats: 'MP4, MOV, AVI', tags: ['Duree', 'Codec', 'GPS'] },
 ];
 
 export function LandingPage() {
-  return (
-    <div className="min-h-screen" style={{ backgroundColor: '#080A0F', color: '#EDE8DC' }}>
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
+  const y = useTransform(scrollYProgress, [0, 0.5], [0, 50]);
 
-      {/* ── Navbar ─────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 sm:px-12 py-4"
-        style={{ backgroundColor: 'rgba(8,10,15,0.95)', borderBottom: '1px solid rgba(201,168,76,0.15)', backdropFilter: 'blur(12px)' }}>
-        <div className="flex items-center gap-2">
-          <Brush className="w-5 h-5" style={{ color: '#C9A84C' }} />
-          <span style={{ fontFamily: 'Cinzel, serif', color: '#C9A84C', letterSpacing: '2px', fontSize: '18px' }}>MetaCraft</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link to="/login">
-            <motion.button className="px-4 py-2 text-sm" whileHover={{ color: '#C9A84C' }}
-              style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px', color: '#7A7060' }}>
-              CONNEXION
-            </motion.button>
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-[#f5f5f5] overflow-x-hidden">
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 sm:px-12 lg:px-20">
+        <div className="flex items-center justify-between py-6 border-b border-[#d4af37]/10">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 rounded-full bg-[#d4af37]/10 flex items-center justify-center group-hover:bg-[#d4af37]/20 transition-colors">
+              <Layers className="w-4 h-4 text-[#d4af37]" />
+            </div>
+            <span className="font-cinzel text-lg tracking-[0.2em] text-[#d4af37]">METACRAFT</span>
           </Link>
-          <Link to="/signup">
-            <motion.button className="px-5 py-2 text-sm"
-              style={{ backgroundColor: '#C9A84C', color: '#080A0F', fontFamily: 'Bebas Neue, cursive', letterSpacing: '2px' }}
-              whileHover={{ scale: 1.03, boxShadow: '0 0 16px rgba(201,168,76,0.4)' }}
-              whileTap={{ scale: 0.97 }}>
-              COMMENCER
-            </motion.button>
-          </Link>
+          
+          <div className="flex items-center gap-4">
+            <Link to="/login">
+              <motion.button 
+                className="px-6 py-2.5 text-sm tracking-[0.15em] text-[#8a8a8a] hover:text-[#f5f5f5] transition-colors font-bebas"
+                whileHover={{ x: 2 }}
+              >
+                CONNEXION
+              </motion.button>
+            </Link>
+            <Link to="/signup">
+              <motion.button 
+                className="px-6 py-2.5 text-sm tracking-[0.15em] bg-[#d4af37] text-[#0a0a0a] font-bebas rounded-full"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                COMMENCER
+              </motion.button>
+            </Link>
+          </div>
         </div>
       </nav>
 
-      {/* ── Hero ───────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-6 sm:px-12 py-24 sm:py-40 text-center">
-        {/* Background grid */}
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: 'linear-gradient(rgba(201,168,76,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.5) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }} />
-        {/* Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, #C9A84C 0%, transparent 70%)' }} />
+      {/* Hero Section */}
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-6 sm:px-12 lg:px-20 pt-24">
+        {/* Subtle grid background */}
+        <div 
+          className="absolute inset-0 opacity-[0.03]" 
+          style={{
+            backgroundImage: `linear-gradient(#d4af37 1px, transparent 1px), linear-gradient(90deg, #d4af37 1px, transparent 1px)`,
+            backgroundSize: '80px 80px'
+          }} 
+        />
+        
+        {/* Radial gradient */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-[#d4af37]/5 blur-[120px]" />
 
-        <motion.div className="relative z-10 max-w-[860px] mx-auto">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-            className="inline-block px-4 py-1.5 mb-6"
-            style={{ border: '1px solid rgba(201,168,76,0.4)', fontFamily: 'Bebas Neue, cursive', letterSpacing: '4px', color: '#C9A84C', fontSize: '11px' }}>
-            OUTIL D’EXCAVATION NUMÉRIQUE
+        <motion.div 
+          className="relative z-10 max-w-4xl mx-auto text-center"
+          style={{ opacity, scale, y }}
+        >
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="mb-8"
+          >
+            <span className="inline-block px-4 py-2 text-xs tracking-[0.3em] text-[#d4af37] border border-[#d4af37]/20 rounded-full font-bebas">
+              EXCAVATION NUMERIQUE
+            </span>
           </motion.div>
 
-          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }}
-            className="mb-6" style={{ fontFamily: 'Cinzel, serif', fontSize: 'clamp(32px, 7vw, 72px)', lineHeight: 1.1, color: '#EDE8DC' }}>
-            Révélez ce que{' '}
-            <span style={{ color: '#C9A84C' }}>vos fichiers</span>{' '}cachent
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.1 }}
+            className="font-cinzel text-5xl sm:text-6xl lg:text-7xl xl:text-8xl leading-[0.95] mb-8 tracking-tight"
+          >
+            Revelez ce que{' '}
+            <span className="text-[#d4af37]">vos fichiers</span>
+            <br />cachent
           </motion.h1>
 
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
-            className="mb-10 max-w-[580px] mx-auto"
-            style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 'clamp(14px, 2.5vw, 18px)', color: '#7A7060', lineHeight: 1.7 }}>
-            MetaCraft extrait, affiche et modifie les métadonnées de vos images, audios,
-            PDFs et vidéos — en quelques secondes, sans rien installer.
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="text-lg sm:text-xl text-[#8a8a8a] max-w-2xl mx-auto mb-12 leading-relaxed font-ibm-plex-mono"
+          >
+            MetaCraft extrait, affiche et modifie les metadonnees de vos images, 
+            audios, PDFs et videos — en quelques secondes.
           </motion.p>
 
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          >
             <Link to="/signup">
-              <motion.button className="px-8 py-4 flex items-center gap-2 text-base"
-                style={{ backgroundColor: '#C9A84C', color: '#080A0F', fontFamily: 'Bebas Neue, cursive', letterSpacing: '3px' }}
-                whileHover={{ scale: 1.04, boxShadow: '0 0 32px rgba(201,168,76,0.5)' }}
-                whileTap={{ scale: 0.97 }}>
-                DÉMARRER GRATUITEMENT <ChevronRight className="w-5 h-5" />
+              <motion.button 
+                className="group flex items-center gap-3 px-8 py-4 bg-[#d4af37] text-[#0a0a0a] font-bebas text-lg tracking-[0.15em] rounded-full"
+                whileHover={{ scale: 1.02, boxShadow: '0 0 40px rgba(212, 175, 55, 0.3)' }}
+                whileTap={{ scale: 0.98 }}
+              >
+                DEMARRER GRATUITEMENT
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </Link>
             <Link to="/login">
-              <motion.button className="px-8 py-4 text-base"
-                style={{ border: '1px solid rgba(201,168,76,0.4)', color: '#C9A84C', fontFamily: 'Bebas Neue, cursive', letterSpacing: '3px' }}
-                whileHover={{ backgroundColor: 'rgba(201,168,76,0.08)' }}>
+              <motion.button 
+                className="px-8 py-4 text-[#d4af37] font-bebas text-lg tracking-[0.15em] border border-[#d4af37]/30 rounded-full hover:bg-[#d4af37]/5 transition-colors"
+                whileHover={{ scale: 1.02 }}
+              >
                 SE CONNECTER
               </motion.button>
             </Link>
           </motion.div>
         </motion.div>
+
+        {/* Scroll indicator */}
+        <motion.div 
+          className="absolute bottom-12 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+        >
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="flex flex-col items-center gap-2 text-[#8a8a8a]"
+          >
+            <span className="text-xs tracking-[0.2em] font-bebas">DECOUVRIR</span>
+            <ChevronDown className="w-5 h-5" />
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* ── How it works ───────────────────────────────────────── */}
-      <section className="px-6 sm:px-12 py-20" style={{ backgroundColor: '#0C101A' }}>
-        <div className="max-w-[1000px] mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-14">
-            <p className="mb-3" style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '4px', color: '#C9A84C', fontSize: '12px' }}>COMMENT ÇA FONCTIONNE</p>
-            <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 'clamp(24px, 4vw, 40px)', color: '#EDE8DC' }}>3 étapes, c’est tout</h2>
+      {/* How it Works */}
+      <section className="py-32 px-6 sm:px-12 lg:px-20">
+        <div className="max-w-6xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <span className="text-xs tracking-[0.3em] text-[#d4af37] font-bebas block mb-4">PROCESSUS</span>
+            <h2 className="font-cinzel text-4xl sm:text-5xl">Trois etapes simples</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-4">
             {[
-              { step: '01', title: 'Uploadez', desc: 'Glissez votre fichier ou cliquez pour le sélectionner. Il est stocké de façon privée sur Firebase.', color: '#C9A84C' },
-              { step: '02', title: 'Inspectez', desc: 'Toutes les métadonnées sont extraites automatiquement et affichées clairement, champ par champ.', color: '#2AFC98' },
-              { step: '03', title: 'Modifiez', desc: 'Éditez les champs que vous voulez et sauvegardez. Le fichier est mis à jour immédiatement.', color: '#E8732A' },
-            ].map((s, i) => (
-              <motion.div key={s.step}
-                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.15 }}
-                className="p-6 relative"
-                style={{ border: `1px solid ${s.color}22`, backgroundColor: '#141C2A' }}>
-                <div className="text-6xl mb-4" style={{ fontFamily: 'Cinzel, serif', color: s.color, opacity: 0.3, lineHeight: 1 }}>{s.step}</div>
-                <h3 className="text-xl mb-3" style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC' }}>{s.title}</h3>
-                <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '14px', color: '#7A7060', lineHeight: 1.6 }}>{s.desc}</p>
+              { num: '01', title: 'Uploadez', desc: 'Glissez votre fichier ou cliquez pour le selectionner. Stockage prive et securise.' },
+              { num: '02', title: 'Inspectez', desc: 'Toutes les metadonnees sont extraites et affichees clairement, champ par champ.' },
+              { num: '03', title: 'Modifiez', desc: 'Editez les champs que vous voulez et sauvegardez. Mise a jour immediate.' },
+            ].map((step, i) => (
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: i * 0.15 }}
+                className="relative group"
+              >
+                <div className="p-10 bg-[#111111] border border-[#222222] hover:border-[#d4af37]/30 transition-all duration-500 h-full">
+                  <span className="font-cinzel text-6xl text-[#d4af37]/20 group-hover:text-[#d4af37]/40 transition-colors duration-500">
+                    {step.num}
+                  </span>
+                  <h3 className="font-cinzel text-2xl text-[#f5f5f5] mt-4 mb-4">{step.title}</h3>
+                  <p className="text-[#8a8a8a] leading-relaxed font-ibm-plex-mono text-sm">{step.desc}</p>
+                </div>
+                {i < 2 && (
+                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-px bg-gradient-to-r from-[#d4af37]/30 to-transparent" />
+                )}
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Features ───────────────────────────────────────────── */}
-      <section className="px-6 sm:px-12 py-20">
-        <div className="max-w-[1100px] mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-14">
-            <p className="mb-3" style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '4px', color: '#C9A84C', fontSize: '12px' }}>FONCTIONNALITÉS</p>
-            <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 'clamp(24px, 4vw, 40px)', color: '#EDE8DC' }}>Tout ce dont vous avez besoin</h2>
+      {/* Features Grid */}
+      <section className="py-32 px-6 sm:px-12 lg:px-20 bg-[#0d0d0d]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <span className="text-xs tracking-[0.3em] text-[#d4af37] font-bebas block mb-4">FONCTIONNALITES</span>
+            <h2 className="font-cinzel text-4xl sm:text-5xl">Tout ce dont vous avez besoin</h2>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {FEATURES.map((f, i) => (
-              <motion.div key={f.title}
-                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                className="p-6" style={{ backgroundColor: '#141C2A', border: '1px solid rgba(201,168,76,0.1)' }}
-                whileHover={{ borderColor: `${f.color}44`, backgroundColor: '#1A2235' }}>
-                <f.icon className="w-8 h-8 mb-4" style={{ color: f.color }} />
-                <h3 className="text-base mb-2" style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC' }}>{f.title}</h3>
-                <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '13px', color: '#7A7060', lineHeight: 1.6 }}>{f.desc}</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {FEATURES.map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className="group p-8 bg-[#111111] border border-[#1a1a1a] hover:border-[#d4af37]/20 transition-all duration-300"
+              >
+                <div className="w-12 h-12 rounded-full bg-[#d4af37]/10 flex items-center justify-center mb-6 group-hover:bg-[#d4af37]/20 transition-colors">
+                  <feature.icon className="w-5 h-5 text-[#d4af37]" />
+                </div>
+                <h3 className="font-cinzel text-lg text-[#f5f5f5] mb-3">{feature.title}</h3>
+                <p className="text-[#8a8a8a] text-sm leading-relaxed font-ibm-plex-mono">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Supported formats ──────────────────────────────────── */}
-      <section className="px-6 sm:px-12 py-20" style={{ backgroundColor: '#0C101A' }}>
-        <div className="max-w-[900px] mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-14">
-            <p className="mb-3" style={{ fontFamily: 'Bebas Neue, cursive', letterSpacing: '4px', color: '#C9A84C', fontSize: '12px' }}>COMPATIBILITÉ</p>
-            <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: 'clamp(24px, 4vw, 40px)', color: '#EDE8DC' }}>Formats supportés</h2>
+      {/* Supported Formats */}
+      <section className="py-32 px-6 sm:px-12 lg:px-20">
+        <div className="max-w-6xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <span className="text-xs tracking-[0.3em] text-[#d4af37] font-bebas block mb-4">COMPATIBILITE</span>
+            <h2 className="font-cinzel text-4xl sm:text-5xl">Formats supportes</h2>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {SUPPORTED.map((s, i) => (
-              <motion.div key={s.ext}
-                initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="flex items-start gap-4 p-5"
-                style={{ backgroundColor: '#141C2A', border: '1px solid rgba(201,168,76,0.12)' }}>
-                <div className="flex-1">
-                  <p className="mb-2" style={{ fontFamily: 'Cinzel, serif', color: '#EDE8DC', fontSize: '15px' }}>{s.ext}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {s.tags.map(t => (
-                      <span key={t} className="px-2 py-0.5 text-xs"
-                        style={{ backgroundColor: 'rgba(201,168,76,0.12)', fontFamily: 'Bebas Neue, cursive', letterSpacing: '1px', color: '#C9A84C' }}>
-                        {t}
-                      </span>
-                    ))}
-                  </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {FORMATS.map((format, i) => (
+              <motion.div
+                key={format.label}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="p-6 bg-[#111111] border border-[#1a1a1a] hover:border-[#d4af37]/20 transition-colors group"
+              >
+                <format.icon className="w-10 h-10 text-[#d4af37]/60 mb-4 group-hover:text-[#d4af37] transition-colors" />
+                <h4 className="font-cinzel text-lg text-[#f5f5f5] mb-1">{format.label}</h4>
+                <p className="text-[#8a8a8a] text-xs font-ibm-plex-mono mb-4">{format.formats}</p>
+                <div className="flex flex-wrap gap-2">
+                  {format.tags.map(tag => (
+                    <span 
+                      key={tag} 
+                      className="px-2 py-1 text-xs bg-[#d4af37]/10 text-[#d4af37] font-bebas tracking-wider"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </motion.div>
             ))}
@@ -211,40 +309,49 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA ────────────────────────────────────────────────── */}
-      <section className="px-6 sm:px-12 py-24 text-center relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: 'linear-gradient(rgba(201,168,76,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.5) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }} />
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="relative z-10 max-w-[600px] mx-auto">
-          <h2 className="mb-4" style={{ fontFamily: 'Cinzel, serif', fontSize: 'clamp(28px, 5vw, 52px)', color: '#EDE8DC', lineHeight: 1.2 }}>
-            Prêt à explorer vos fichiers ?
+      {/* CTA Section */}
+      <section className="py-40 px-6 sm:px-12 lg:px-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#d4af37]/5 to-transparent" />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-3xl mx-auto text-center"
+        >
+          <h2 className="font-cinzel text-4xl sm:text-5xl lg:text-6xl mb-6">
+            Pret a explorer<br />vos fichiers ?
           </h2>
-          <p className="mb-8" style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '16px', color: '#7A7060' }}>
-            Gratuit. Aucune carte de crédit. Commencez en 30 secondes.
+          <p className="text-[#8a8a8a] text-lg mb-10 font-ibm-plex-mono">
+            Gratuit. Aucune carte de credit. Commencez en 30 secondes.
           </p>
           <Link to="/signup">
-            <motion.button className="px-10 py-4 text-base"
-              style={{ backgroundColor: '#C9A84C', color: '#080A0F', fontFamily: 'Bebas Neue, cursive', letterSpacing: '3px' }}
-              whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(201,168,76,0.5)' }}
-              whileTap={{ scale: 0.97 }}>
-              CRÉER UN COMPTE GRATUIT
+            <motion.button 
+              className="group flex items-center gap-3 px-10 py-5 bg-[#d4af37] text-[#0a0a0a] font-bebas text-lg tracking-[0.15em] rounded-full mx-auto"
+              whileHover={{ scale: 1.02, boxShadow: '0 0 60px rgba(212, 175, 55, 0.4)' }}
+              whileTap={{ scale: 0.98 }}
+            >
+              CREER UN COMPTE GRATUIT
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </Link>
         </motion.div>
       </section>
 
-      {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer className="px-6 sm:px-12 py-8 flex flex-col sm:flex-row items-center justify-between gap-4"
-        style={{ borderTop: '1px solid rgba(201,168,76,0.1)' }}>
-        <div className="flex items-center gap-2">
-          <Brush className="w-4 h-4" style={{ color: '#C9A84C' }} />
-          <span style={{ fontFamily: 'Cinzel, serif', color: '#C9A84C', letterSpacing: '2px', fontSize: '14px' }}>MetaCraft</span>
+      {/* Footer */}
+      <footer className="py-12 px-6 sm:px-12 lg:px-20 border-t border-[#1a1a1a]">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 rounded-full bg-[#d4af37]/10 flex items-center justify-center">
+              <Layers className="w-3 h-3 text-[#d4af37]" />
+            </div>
+            <span className="font-cinzel text-sm tracking-[0.15em] text-[#d4af37]">METACRAFT</span>
+          </div>
+          <p className="text-[#8a8a8a] text-sm font-ibm-plex-mono">
+            {new Date().getFullYear()} MetaCraft — Excavation numerique
+          </p>
         </div>
-        <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px', color: '#7A7060' }}>
-          © {new Date().getFullYear()} MetaCraft — Outil d’excavation numérique
-        </p>
       </footer>
     </div>
   );

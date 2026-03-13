@@ -3,3 +3,26 @@
 @import 'tw-animate-css';
 
 @source '../**/*.{js,ts,jsx,tsx}';
+
+@theme inline {
+  --font-cinzel: 'Cinzel', serif;
+  --font-ibm-plex-mono: 'IBM Plex Mono', monospace;
+  --font-bebas: 'Bebas Neue', cursive;
+  --font-jetbrains: 'JetBrains Mono', monospace;
+}
+
+@utility font-cinzel {
+  font-family: var(--font-cinzel);
+}
+
+@utility font-ibm-plex-mono {
+  font-family: var(--font-ibm-plex-mono);
+}
+
+@utility font-bebas {
+  font-family: var(--font-bebas);
+}
+
+@utility font-jetbrains {
+  font-family: var(--font-jetbrains);
+}
